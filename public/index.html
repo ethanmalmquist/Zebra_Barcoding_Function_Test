@@ -1,0 +1,3920 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grabtech ERP | Label Dashboard</title>
+
+  <style>
+    :root {
+      --brand-blue: #1677ff;
+      --brand-blue-dark: #07145f;
+      --brand-blue-soft: #e6f4ff;
+      --brand-green: #16c784;
+      --brand-green-soft: #f6ffed;
+      --page-bg: #ffffff;
+      --app-bg: #f7f9fc;
+      --sidebar-bg: #ffffff;
+      --topbar-bg: #f6ffe7;
+      --border: #e5e7eb;
+      --border-dark: #d9d9d9;
+      --text: #111827;
+      --text-muted: #8c8c8c;
+      --text-soft: #64748b;
+      --danger: #ff4d4f;
+      --danger-soft: #fff1f0;
+      --warning: #faad14;
+      --warning-soft: #fff7e6;
+      --success: #52c41a;
+      --shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: var(--app-bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 58px 1fr;
+      background: var(--app-bg);
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      height: 58px;
+      background: var(--topbar-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 42px;
+      gap: 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand {
+      min-width: 230px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--brand-blue);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand span {
+      color: var(--brand-green);
+    }
+
+    .top-search {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .search-box {
+      width: min(380px, 100%);
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border-dark);
+      background: white;
+      border-radius: 4px;
+      overflow: hidden;
+      height: 32px;
+    }
+
+    .search-box input {
+      border: none;
+      outline: none;
+      flex: 1;
+      padding: 0 12px;
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    .search-box button {
+      width: 38px;
+      height: 32px;
+      border: none;
+      border-left: 1px solid var(--border-dark);
+      background: white;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .user-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #111;
+      white-space: nowrap;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #ffd8bf;
+      color: #fa541c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: calc(100vh - 58px);
+    }
+
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 34px 26px;
+    }
+
+    .welcome {
+      margin-bottom: 28px;
+    }
+
+    .welcome h2 {
+      color: var(--brand-blue);
+      font-family: Georgia, "Times New Roman", serif;
+      font-style: italic;
+      font-size: 23px;
+      margin: 0 0 6px;
+      font-weight: 700;
+    }
+
+    .welcome p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .nav-section-title {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin: 22px 0 10px;
+    }
+
+    .nav-item {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-radius: 7px;
+      color: #333;
+      text-decoration: none;
+      margin-bottom: 6px;
+    }
+
+    .nav-item.active {
+      background: var(--brand-blue-soft);
+      color: var(--brand-blue);
+    }
+
+    .nav-icon {
+      width: 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .content {
+      background: var(--page-bg);
+      padding: 26px 34px 40px;
+      min-width: 0;
+    }
+
+    .breadcrumb {
+      color: var(--text-muted);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .page-header {
+      display: block;
+      margin-bottom: 18px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--brand-blue);
+      color: var(--brand-blue);
+      border-radius: 6px;
+      background: white;
+      font-size: 20px;
+      line-height: 1;
+      cursor: default;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.05;
+      color: var(--brand-blue-dark);
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 8px 0 0 43px;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 26px;
+      align-items: start;
+    }
+
+    .main-stack {
+      min-width: 0;
+    }
+
+    .section-title {
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+      margin: 0 0 14px;
+      font-weight: 800;
+    }
+
+    .control-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .control-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .control-panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .control-panel-title h2 {
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+      margin: 0;
+      font-weight: 800;
+    }
+
+    .control-panel-title span {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field.field-wide {
+      grid-column: span 2;
+    }
+
+    .field label {
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+      font-size: 13px;
+    }
+
+    select {
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--border-dark);
+      border-radius: 5px;
+      background: white;
+      color: #333;
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .actions-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      min-height: 34px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      padding: 0 14px;
+      background: var(--brand-blue);
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.15s ease;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      filter: brightness(0.96);
+    }
+
+    button.primary {
+      background: var(--brand-blue);
+      color: white;
+    }
+
+    button.green {
+      background: var(--brand-green);
+      color: #001b11;
+      border-color: var(--brand-green);
+    }
+
+    button.secondary,
+    button.neutral,
+    button.warning {
+      background: white;
+      color: var(--brand-blue);
+      border-color: var(--brand-blue);
+    }
+
+    button.danger {
+      background: white;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    button.toggle-selected {
+      background: var(--brand-blue-dark);
+      color: white;
+      border-color: var(--brand-blue-dark);
+    }
+
+    .label-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .label-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .label-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .label-card h2 {
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+      margin: 0 0 6px;
+    }
+
+    .label-card p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .label-type-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--brand-blue-soft);
+      color: var(--brand-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .button-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .button-stack button {
+      width: 100%;
+      padding: 0 10px;
+      white-space: nowrap;
+    }
+
+
+
+    .label-advanced {
+      margin-top: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    .label-advanced summary {
+      cursor: pointer;
+      color: var(--brand-blue);
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .label-advanced button {
+      width: 100%;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+      max-height: 260px;
+      overflow: auto;
+    }
+
+    .history-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 10px;
+      display: grid;
+      gap: 4px;
+      color: #333;
+    }
+
+    .history-item strong {
+      color: var(--brand-blue-dark);
+    }
+
+    .history-item span {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .gallery-wrap,
+    .output-wrap {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .gallery-header,
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .gallery-header h2,
+    .panel-header h2 {
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .small {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    #labelPreviewGallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    .preview-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: white;
+    }
+
+    .preview-card-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--brand-blue-dark);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .preview-card img {
+      width: 100%;
+      max-width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .label-error {
+      color: #a8071a;
+      background: var(--danger-soft);
+      padding: 10px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      border: 1px solid #ffccc7;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid var(--border-dark);
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .pill.connected {
+      background: var(--brand-green-soft);
+      color: #237804;
+      border-color: #b7eb8f;
+    }
+
+    .pill.disconnected {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: #ffccc7;
+    }
+
+    .pill.checking {
+      background: var(--warning-soft);
+      color: #d46b08;
+      border-color: #ffd591;
+    }
+
+    .qty-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--brand-green-soft);
+      color: #237804;
+      border: 1px solid #b7eb8f;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #07145f;
+      color: #e6f4ff;
+      padding: 14px;
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 420px;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .side-panel {
+      position: sticky;
+      top: 84px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .timeline-card,
+    .summary-card,
+    .printer-status-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .timeline-card h3,
+    .summary-card h3,
+    .printer-status-card h3 {
+      margin: 0 0 14px;
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+    }
+
+    .printer-status-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .printer-status-heading h3 {
+      margin: 0;
+    }
+
+    .printer-status-meta {
+      display: grid;
+      gap: 10px;
+      color: #333;
+    }
+
+    .printer-status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+
+    .printer-status-row:last-child {
+      border-bottom: none;
+    }
+
+    .printer-status-row span {
+      color: var(--text-muted);
+    }
+
+    .printer-status-row strong {
+      color: var(--brand-blue-dark);
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 10px;
+      color: #333;
+    }
+
+    .timeline-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--brand-blue-soft);
+      color: var(--brand-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .timeline-item.done .timeline-dot {
+      background: var(--brand-green-soft);
+      color: var(--success);
+    }
+
+    .timeline-item.failed .timeline-dot {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .timeline-title {
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .timeline-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-row strong {
+      color: var(--brand-blue-dark);
+    }
+
+    .footer-note {
+      color: #c0c4cc;
+      font-size: 13px;
+      margin-top: 22px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 1000;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .status-modal {
+      width: min(440px, 100%);
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+      border: 1px solid var(--border);
+      padding: 28px;
+      text-align: center;
+      position: relative;
+    }
+
+    .modal-close-button {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 50%;
+      background: white;
+      color: var(--text-muted);
+      border: 1px solid var(--border-dark);
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .modal-close-button:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .modal-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .modal-icon.connected {
+      background: var(--brand-green-soft);
+      color: var(--success);
+      border: 1px solid #b7eb8f;
+    }
+
+    .modal-icon.disconnected {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid #ffccc7;
+    }
+
+    .modal-icon.checking {
+      background: var(--warning-soft);
+      color: #d46b08;
+      border: 1px solid #ffd591;
+    }
+
+    .status-modal h2 {
+      color: var(--brand-blue-dark);
+      font-size: 24px;
+      margin: 0 0 10px;
+      letter-spacing: -0.03em;
+    }
+
+    .status-modal p {
+      color: #4b5563;
+      font-size: 15px;
+      line-height: 1.5;
+      margin: 0 0 22px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .modal-actions button {
+      min-width: 150px;
+    }
+
+    .excel-data-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .excel-data-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .excel-data-header h2 {
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+      margin: 0 0 6px;
+    }
+
+    .excel-data-header p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .excel-form-layout {
+      display: grid;
+      gap: 14px;
+    }
+
+    .excel-top-row {
+      display: grid;
+      grid-template-columns: minmax(260px, 360px) minmax(220px, 1fr) auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .excel-table-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .excel-table-actions button {
+      height: 36px;
+      white-space: nowrap;
+    }
+
+    .excel-field-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .excel-field {
+      min-width: 0;
+    }
+
+    .excel-field label {
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+      font-size: 13px;
+    }
+
+    .excel-field input {
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--border-dark);
+      border-radius: 5px;
+      background: white;
+      color: #333;
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .excel-field input:focus,
+    .excel-field select:focus {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
+    }
+
+    .excel-field input.readonly-generated {
+      background: #f5f5f5;
+      color: #64748b;
+      cursor: not-allowed;
+      border-color: var(--border);
+    }
+
+    .excel-field input.readonly-generated:focus {
+      border-color: var(--border);
+      box-shadow: none;
+    }
+
+    .excel-actions-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .excel-message {
+      min-height: 22px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      align-self: end;
+      padding-bottom: 8px;
+    }
+
+    .excel-message.success {
+      color: #237804;
+    }
+
+    .excel-message.error {
+      color: var(--danger);
+    }
+
+    .excel-empty-state {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--border-dark);
+      border-radius: 8px;
+      background: #fafafa;
+      color: var(--text-muted);
+      padding: 14px;
+      font-weight: 600;
+    }
+
+    .excel-auto-generated-note {
+      grid-column: 1 / -1;
+      border: 1px solid #b7eb8f;
+      border-radius: 8px;
+      background: var(--brand-green-soft);
+      color: #237804;
+      padding: 12px 14px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .excel-auto-generated-note span {
+      display: block;
+      color: #389e0d;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .bulk-modal {
+      width: min(1100px, 96vw);
+      max-height: 88vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+      border: 1px solid var(--border);
+      padding: 22px;
+    }
+
+    .bulk-modal-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .bulk-modal-header h2 {
+      color: var(--brand-blue-dark);
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+
+    .bulk-modal-header p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .bulk-close-button {
+      min-width: 34px;
+      height: 34px;
+      padding: 0 10px;
+    }
+
+    .bulk-paste-box {
+      width: 100%;
+      min-height: 160px;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      resize: vertical;
+      outline: none;
+    }
+
+    .bulk-paste-box:focus {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
+    }
+
+    .bulk-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 14px 0;
+    }
+
+    .bulk-preview-wrap {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 360px;
+    }
+
+    .bulk-preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .bulk-preview-table th,
+    .bulk-preview-table td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .bulk-preview-table th {
+      background: var(--brand-blue-soft);
+      color: var(--brand-blue-dark);
+      font-weight: 800;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .bulk-preview-table td {
+      background: #fff;
+    }
+
+    .bulk-message {
+      min-height: 22px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .bulk-message.success {
+      color: #237804;
+    }
+
+    .bulk-message.error {
+      color: var(--danger);
+    }
+
+    .bulk-preview-table {
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .bulk-preview-table td.generated-cell,
+    .bulk-preview-table td.fixed-cell {
+      background: var(--brand-green-soft);
+      color: #237804;
+      font-weight: 700;
+    }
+
+    .bulk-preview-table td.error-cell {
+      background: var(--danger-soft);
+      color: #a8071a;
+      font-weight: 700;
+    }
+
+    .bulk-preview-table td.warning-cell {
+      background: var(--warning-soft);
+      color: #ad6800;
+      font-weight: 700;
+    }
+
+    .bulk-preview-table td.row-status-ready {
+      background: var(--brand-green-soft);
+      color: #237804;
+      font-weight: 800;
+    }
+
+    .bulk-preview-table td.row-status-error {
+      background: var(--danger-soft);
+      color: #a8071a;
+      font-weight: 800;
+    }
+
+    .saved-table-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fafafa;
+      padding: 14px;
+      margin-top: 4px;
+    }
+
+    .saved-table-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .saved-table-header h3 {
+      color: var(--brand-blue-dark);
+      font-size: 16px;
+      margin: 0 0 4px;
+    }
+
+    .saved-table-header p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .saved-table-tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .saved-table-tools input {
+      height: 34px;
+      min-width: 220px;
+      border: 1px solid var(--border-dark);
+      border-radius: 5px;
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .saved-table-tools input:focus {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
+    }
+
+    .saved-table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 360px;
+      background: #fff;
+    }
+
+    .saved-excel-table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .saved-excel-table th,
+    .saved-excel-table td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .saved-excel-table th {
+      background: var(--brand-blue-soft);
+      color: var(--brand-blue-dark);
+      font-weight: 800;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .saved-excel-table td {
+      background: #fff;
+    }
+
+    .saved-excel-table .generated-cell {
+      background: var(--brand-green-soft);
+      color: #237804;
+      font-weight: 700;
+    }
+
+    .saved-excel-table .select-cell {
+      text-align: center;
+      width: 44px;
+      min-width: 44px;
+    }
+
+    .saved-excel-table .selected-row td {
+      background: #e6f4ff;
+    }
+
+    .saved-excel-table .selected-row .generated-cell {
+      background: #d9f7be;
+    }
+
+    .saved-table-summary {
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 1250px) {
+      .control-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .format-grid,
+      .actions-row,
+      .excel-field-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field.field-wide {
+        grid-column: span 1;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .side-panel {
+        position: static;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .label-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .excel-top-row {
+        grid-template-columns: 1fr;
+      }
+
+      .excel-table-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        padding: 0 18px;
+      }
+
+      .brand {
+        min-width: auto;
+        font-size: 22px;
+      }
+
+      .top-search {
+        display: none;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        padding: 22px 16px;
+      }
+
+      .page-header {
+        margin-bottom: 16px;
+      }
+
+      .side-panel {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .subtitle {
+        margin-left: 0;
+      }
+
+      .button-stack,
+      .actions-grid,
+      .format-grid,
+      .actions-row,
+      .excel-field-grid,
+      .excel-top-row,
+      .excel-actions-row {
+        grid-template-columns: 1fr;
+      }
+
+      .excel-table-actions {
+        justify-content: stretch;
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .bulk-toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">Grabtech <span>ERP</span></div>
+
+      <div class="top-search">
+        <div class="search-box">
+          <input type="text" placeholder="search anything" />
+          <button type="button">⌕</button>
+        </div>
+      </div>
+
+      <div class="user-box">
+        <div class="avatar">E</div>
+        <span>Ethan Malmquist</span>
+        <span>⌄</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="welcome">
+          <h2>Welcome Ethan!</h2>
+          <p>Parts Manager</p>
+        </div>
+
+        <a class="nav-item active" href="#">
+          <span class="nav-icon">⌁</span>
+          <span>Label Printing</span>
+        </a>
+
+        <div class="nav-section-title">Database & Inventories</div>
+
+        <a class="nav-item" href="#">
+          <span class="nav-icon">♙</span>
+          <span>Customers</span>
+        </a>
+
+        <a class="nav-item" href="#">
+          <span class="nav-icon">▤</span>
+          <span>Parts Inventory</span>
+        </a>
+
+        <a class="nav-item" href="#">
+          <span class="nav-icon">□</span>
+          <span>Parts Orders/Returns</span>
+        </a>
+
+        <div class="nav-section-title">Profile & Settings</div>
+
+        <a class="nav-item" href="#">
+          <span class="nav-icon">⚙</span>
+          <span>Settings</span>
+        </a>
+
+        <p class="footer-note">Local Zebra ZD421 dashboard</p>
+      </aside>
+
+      <main class="content">
+        <div class="breadcrumb">
+          <span>⌂ Home</span>
+          <span>/</span>
+          <span>Label Printing</span>
+          <span>/</span>
+          <strong>Dashboard</strong>
+        </div>
+
+        <div class="page-header">
+          <div class="title-row">
+            <button class="back-btn" type="button">‹</button>
+            <h1>Label Print Dashboard</h1>
+          </div>
+          <p class="subtitle">
+            Preview, PDF export, print, pause, resume, terminate, and reprint Zebra labels.
+          </p>
+        </div>
+
+        <div class="workspace">
+          <div class="main-stack">
+            <section class="control-shell">
+              <div class="control-panel">
+                <div class="control-panel-title">
+                  <div>
+                    <h2>Print Formatting</h2>
+                    <span>Set label mode, preview behavior, and printer setup actions.</span>
+                  </div>
+                </div>
+
+                <div class="format-grid">
+                  <div class="field field-wide">
+                    <label for="modeSelect">Print / preview mode</label>
+                    <select id="modeSelect">
+                      <option value="test">Test - first valid row, quantity forced to 1</option>
+                      <option value="first">First - first valid row, Excel quantity</option>
+                      <option value="all" selected>All - all valid rows, Excel quantity</option>
+                    </select>
+                  </div>
+
+                  <div class="field field-wide">
+                    <label for="previewLimitSelect">Image preview</label>
+                    <select id="previewLimitSelect">
+                      <option value="10" selected>First 10</option>
+                      <option value="25">First 25</option>
+                      <option value="50">First 50</option>
+                      <option value="all">All valid labels</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="actions-row">
+                  <button class="secondary" onclick="checkPrinter()">Check Printer Connection</button>
+                  <button class="secondary" onclick="calibratePrinter()">Calibrate Media</button>
+                  <button id="uniquePreviewButton" class="toggle-selected" onclick="toggleUniquePreview()">
+                    Show unique labels only
+                  </button>
+                </div>
+              </div>
+
+              <div class="control-panel">
+                <div class="control-panel-title">
+                  <div>
+                    <h2>Print Controls</h2>
+                    <span>Control the Zebra printer queue and repeat recent jobs.</span>
+                  </div>
+                </div>
+
+                <div class="actions-grid">
+                  <button class="secondary" onclick="syncExcelSheets()">Sync Excel Sheets</button>
+                  <button class="secondary" onclick="feedLabel()">Feed One Label</button>
+                  <button class="secondary" onclick="pausePrint()">Pause Print</button>
+                  <button class="secondary" onclick="resumePrint()">Resume Print</button>
+                  <button class="secondary" onclick="terminatePrint()">Terminate Print</button>
+                  <button class="secondary" onclick="reprintLastJob()">Reprint Previous Print Job</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="excel-data-card">
+              <div class="excel-data-header">
+                <div>
+                  <h2>Excel Data Management</h2>
+                  <p>Add new rows directly into the Product, Location, or Equipment Excel sheets.</p>
+                </div>
+                <span class="pill">Writes to data/*.xlsx</span>
+              </div>
+
+              <div class="excel-form-layout">
+                <div class="excel-top-row">
+                  <div class="field">
+                    <label for="excelDataType">Excel sheet</label>
+                    <select id="excelDataType" onchange="loadExcelDataFields()">
+                      <option value="product">Product Labels</option>
+                      <option value="location">Location Labels</option>
+                      <option value="equipment">Equipment Labels</option>
+                    </select>
+                  </div>
+
+                  <div id="excelDataMessage" class="excel-message">Select a sheet to load its columns.</div>
+
+                  <div class="excel-table-actions">
+                    <button class="secondary" type="button" onclick="cleanSelectedExcelRows()" style="display: none;">
+                      Clean Bad Rows
+                    </button>
+
+                    <button class="danger" type="button" onclick="clearSelectedExcelTable()">
+                      Clear Table
+                    </button>
+                  </div>
+                </div>
+
+                <div id="excelDataFields" class="excel-field-grid">
+                  <div class="excel-empty-state">Loading Excel columns...</div>
+                </div>
+
+                <div class="excel-actions-row">
+                  <button class="secondary" type="button" onclick="addExcelDataRow()">Add to Excel Sheet</button>
+                  <button class="secondary" type="button" onclick="openBulkLabelsModal()">Add Bulk Labels</button>
+                  <button class="secondary" type="button" onclick="clearExcelDataFields()">Clear Form</button>
+                </div>
+
+                <div class="saved-table-card">
+                  <div class="saved-table-header">
+                    <div>
+                      <h3>Saved Excel Table Preview</h3>
+                      <p>Review the rows currently saved in the selected local Excel sheet.</p>
+                    </div>
+
+                    <div class="saved-table-tools">
+                      <input
+                        id="savedTableSearch"
+                        type="text"
+                        placeholder="Search saved rows..."
+                        oninput="renderSavedExcelTable()"
+                      />
+                      <button
+                        id="deleteSelectedRowsButton"
+                        class="danger"
+                        type="button"
+                        onclick="deleteSelectedSavedExcelRows()"
+                        disabled
+                      >
+                        Delete Selected Rows
+                      </button>
+                      <button class="secondary" type="button" onclick="loadSavedExcelTableRows()">Refresh Table</button>
+                    </div>
+                  </div>
+
+                  <div id="savedTableSummary" class="saved-table-summary">Select a sheet to load saved rows.</div>
+
+                  <div class="saved-table-wrap">
+                    <table class="saved-excel-table">
+                      <thead id="savedTableHead"></thead>
+                      <tbody id="savedTableBody">
+                        <tr>
+                          <td>Select a sheet to load saved rows.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="gallery-wrap">
+              <div class="gallery-header">
+                <div>
+                  <h2>Label Image Previews</h2>
+                  <div id="gallerySummary" class="small">No image previews rendered yet.</div>
+                </div>
+                <button class="secondary" onclick="clearGallery()">Clear Images</button>
+              </div>
+
+              <div id="labelPreviewGallery"></div>
+            </section>
+
+            <section>
+              <h2 class="section-title">Label Jobs</h2>
+
+              <div class="label-grid">
+                <article class="label-card">
+                  <div class="label-card-header">
+                    <div>
+                      <h2>Product Labels</h2>
+                      <p>Uses product-labels.xlsx</p>
+                    </div>
+                    <div class="label-type-icon">P</div>
+                  </div>
+
+                  <div class="button-stack">
+                    <button class="secondary" onclick="previewImage('product')">Preview Images</button>
+                    <button class="green" onclick="downloadPdf('product')">Download PDF</button>
+                    <button class="primary" onclick="printLabels('product')">Print</button>
+                  </div>
+
+                  <details class="label-advanced">
+                    <summary>Advanced</summary>
+                    <button class="secondary" onclick="previewZpl('product')">Preview ZPL</button>
+                  </details>
+                </article>
+
+                <article class="label-card">
+                  <div class="label-card-header">
+                    <div>
+                      <h2>Location Labels</h2>
+                      <p>Uses location-labels.xlsx</p>
+                    </div>
+                    <div class="label-type-icon">L</div>
+                  </div>
+
+                  <div class="button-stack">
+                    <button class="secondary" onclick="previewImage('location')">Preview Images</button>
+                    <button class="green" onclick="downloadPdf('location')">Download PDF</button>
+                    <button class="primary" onclick="printLabels('location')">Print</button>
+                  </div>
+
+                  <details class="label-advanced">
+                    <summary>Advanced</summary>
+                    <button class="secondary" onclick="previewZpl('location')">Preview ZPL</button>
+                  </details>
+                </article>
+
+                <article class="label-card">
+                  <div class="label-card-header">
+                    <div>
+                      <h2>Equipment Labels</h2>
+                      <p>Uses equipment-labels.xlsx</p>
+                    </div>
+                    <div class="label-type-icon">E</div>
+                  </div>
+
+                  <div class="button-stack">
+                    <button class="secondary" onclick="previewImage('equipment')">Preview Images</button>
+                    <button class="green" onclick="downloadPdf('equipment')">Download PDF</button>
+                    <button class="primary" onclick="printLabels('equipment')">Print</button>
+                  </div>
+
+                  <details class="label-advanced">
+                    <summary>Advanced</summary>
+                    <button class="secondary" onclick="previewZpl('equipment')">Preview ZPL</button>
+                  </details>
+                </article>
+              </div>
+            </section>
+
+            <section class="output-wrap">
+              <div class="panel-header">
+                <div>
+                  <h2>Activity Log</h2>
+                  <div class="small">Print activity, validation results, generated summaries, and errors appear here.</div>
+                </div>
+              </div>
+              <pre id="output">Ready.</pre>
+            </section>
+          </div>
+
+          <aside class="side-panel">
+            <section class="printer-status-card">
+              <div class="printer-status-heading">
+                <h3>Printer Status</h3>
+                <span id="printerStatusPill" class="pill">
+                  <span id="printerStatusDot" class="status-dot"></span>
+                  Not Checked
+                </span>
+              </div>
+
+              <div id="printerMeta" class="printer-status-meta">
+                <div class="printer-status-row">
+                  <span>Printer</span>
+                  <strong>Zebra ZD421</strong>
+                </div>
+                <div class="printer-status-row">
+                  <span>Target</span>
+                  <strong>192.168.1.126:9100</strong>
+                </div>
+                <div class="printer-status-row">
+                  <span>Server</span>
+                  <strong>localhost:3000</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="timeline-card">
+              <h3>Label Workflow</h3>
+
+              <div class="timeline">
+                <div id="workflowPrinter" class="timeline-item">
+                  <div class="timeline-dot">1</div>
+                  <div>
+                    <div class="timeline-title">Check Printer Connection</div>
+                    <div class="timeline-subtitle">Verify the Zebra ZD421 is reachable before printing</div>
+                  </div>
+                </div>
+
+                <div id="workflowLabels" class="timeline-item">
+                  <div class="timeline-dot">2</div>
+                  <div>
+                    <div class="timeline-title">Add Labels</div>
+                    <div class="timeline-subtitle">Add single or bulk rows in Excel Data Management</div>
+                  </div>
+                </div>
+
+                <div id="workflowPreview" class="timeline-item">
+                  <div class="timeline-dot">3</div>
+                  <div>
+                    <div class="timeline-title">Preview / Export</div>
+                    <div class="timeline-subtitle">Generate label image previews or export a PDF</div>
+                  </div>
+                </div>
+
+                <div id="workflowPrint" class="timeline-item">
+                  <div class="timeline-dot">4</div>
+                  <div>
+                    <div class="timeline-title">Print</div>
+                    <div class="timeline-subtitle">Send a label job to the printer</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="summary-card">
+              <h3>Quick Notes</h3>
+
+              <div class="summary-row">
+                <span>PDF Layout</span>
+                <strong>2 x 9</strong>
+              </div>
+
+              <div class="summary-row">
+                <span>Labels / Page</span>
+                <strong>18</strong>
+              </div>
+
+              <div class="summary-row">
+                <span>Preview Source</span>
+                <strong>Labelary</strong>
+              </div>
+
+              <div class="summary-row">
+                <span>Printer DPI</span>
+                <strong>203</strong>
+              </div>
+
+              <div class="summary-row">
+                <span>Label Size</span>
+                <strong>3 x 1 in</strong>
+              </div>
+            </section>
+
+            <section class="summary-card">
+              <h3>Print History</h3>
+              <div id="printHistoryList" class="history-list">
+                <div class="history-item">
+                  <strong>No print jobs yet.</strong>
+                  <span>Completed jobs will appear here.</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="printerStatusModal" class="modal-backdrop" aria-hidden="true">
+    <div class="status-modal" role="dialog" aria-modal="true" aria-labelledby="printerModalTitle">
+      <button class="modal-close-button" type="button" onclick="closePrinterModal()" aria-label="Close printer status modal">×</button>
+      <div id="printerModalIcon" class="modal-icon checking">!</div>
+      <h2 id="printerModalTitle">Checking Printer</h2>
+      <p id="printerModalDescription">Checking printer connection...</p>
+      <div id="printerModalActions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <div id="bulkLabelsModal" class="modal-backdrop" aria-hidden="true">
+    <div class="bulk-modal" role="dialog" aria-modal="true" aria-labelledby="bulkLabelsTitle">
+      <div class="bulk-modal-header">
+        <div>
+          <h2 id="bulkLabelsTitle">Add Bulk Labels</h2>
+          <p id="bulkLabelsDescription">
+            Paste rows copied from Excel. The columns must match the selected sheet.
+          </p>
+        </div>
+
+        <button class="secondary bulk-close-button" type="button" onclick="closeBulkLabelsModal()">×</button>
+      </div>
+
+      <div class="field">
+        <label for="bulkPasteBox">Paste label rows</label>
+        <textarea
+          id="bulkPasteBox"
+          class="bulk-paste-box"
+          placeholder="Paste rows copied from Excel here..."
+          oninput="parseBulkPasteData()"
+        ></textarea>
+      </div>
+
+      <div class="bulk-toolbar">
+        <div id="bulkLabelsMessage" class="bulk-message">Paste rows to preview them before upload.</div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="secondary" type="button" onclick="clearBulkLabelsPaste()">Clear Paste</button>
+          <button class="primary" type="button" onclick="uploadBulkLabels()">Upload Labels</button>
+        </div>
+      </div>
+
+      <div class="bulk-preview-wrap">
+        <table class="bulk-preview-table">
+          <thead id="bulkPreviewHead"></thead>
+          <tbody id="bulkPreviewBody">
+            <tr>
+              <td>Paste data to preview rows.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let uniquePreviewOnly = true;
+    let currentExcelColumns = [];
+    let currentBulkColumns = [];
+    let parsedBulkRows = [];
+    let savedExcelRows = [];
+    let savedExcelColumns = [];
+    let selectedSavedExcelRowNumbers = new Set();
+    let lastPrinterConnected = false;
+
+    const workflowSteps = {
+      printer: { elementId: "workflowPrinter", pendingText: "1" },
+      labels: { elementId: "workflowLabels", pendingText: "2" },
+      preview: { elementId: "workflowPreview", pendingText: "3" },
+      print: { elementId: "workflowPrint", pendingText: "4" },
+    };
+
+    function setWorkflowStep(stepName, status) {
+      const step = workflowSteps[stepName];
+
+      if (!step) {
+        return;
+      }
+
+      const item = document.getElementById(step.elementId);
+
+      if (!item) {
+        return;
+      }
+
+      const dot = item.querySelector(".timeline-dot");
+      item.classList.remove("done", "failed");
+
+      if (status === "done") {
+        item.classList.add("done");
+        if (dot) {
+          dot.textContent = "✓";
+        }
+        return;
+      }
+
+      if (status === "failed") {
+        item.classList.add("failed");
+        if (dot) {
+          dot.textContent = "×";
+        }
+        return;
+      }
+
+      if (dot) {
+        dot.textContent = step.pendingText;
+      }
+    }
+
+    function getMode() {
+      return document.getElementById("modeSelect").value;
+    }
+
+    function getPreviewLimit() {
+      return document.getElementById("previewLimitSelect").value;
+    }
+
+    function getUniquePreviewOnly() {
+      return uniquePreviewOnly;
+    }
+
+    function toggleUniquePreview() {
+      uniquePreviewOnly = !uniquePreviewOnly;
+
+      const button = document.getElementById("uniquePreviewButton");
+
+      if (uniquePreviewOnly) {
+        button.classList.add("toggle-selected");
+        button.textContent = "Show unique labels only";
+      } else {
+        button.classList.remove("toggle-selected");
+        button.textContent = "Show duplicate labels";
+      }
+    }
+
+    function setOutput(value) {
+      const output = document.getElementById("output");
+
+      if (typeof value === "string") {
+        output.textContent = value;
+      } else {
+        output.textContent = JSON.stringify(value, null, 2);
+      }
+    }
+
+    function clearGallery() {
+      document.getElementById("labelPreviewGallery").innerHTML = "";
+      document.getElementById("gallerySummary").textContent =
+        "No image previews rendered yet.";
+    }
+
+    function updatePrinterStatus(status, details = {}) {
+      const pill = document.getElementById("printerStatusPill");
+      const meta = document.getElementById("printerMeta");
+
+      pill.className = "pill";
+
+      if (status === "connected") {
+        pill.classList.add("connected");
+        pill.innerHTML = '<span id="printerStatusDot" class="status-dot connected"></span>Connected';
+
+        meta.innerHTML =
+          `<div class="printer-status-row">
+            <span>Printer</span>
+            <strong>Zebra ZD421</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Target</span>
+            <strong>${details.ip || "192.168.1.126"}:${details.port || 9100}</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Connection</span>
+            <strong>Connected</strong>
+          </div>`;
+      } else if (status === "disconnected") {
+        pill.classList.add("disconnected");
+        pill.innerHTML = '<span id="printerStatusDot" class="status-dot disconnected"></span>Not Connected';
+
+        meta.innerHTML =
+          `<div class="printer-status-row">
+            <span>Printer</span>
+            <strong>Zebra ZD421</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Target</span>
+            <strong>192.168.1.126:9100</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Connection</span>
+            <strong>Not Connected</strong>
+          </div>`;
+      } else if (status === "checking") {
+        pill.classList.add("checking");
+        pill.innerHTML = '<span id="printerStatusDot" class="status-dot checking"></span>Checking';
+
+        meta.innerHTML =
+          `<div class="printer-status-row">
+            <span>Printer</span>
+            <strong>Zebra ZD421</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Target</span>
+            <strong>192.168.1.126:9100</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Connection</span>
+            <strong>Checking...</strong>
+          </div>`;
+      } else {
+        pill.innerHTML = '<span id="printerStatusDot" class="status-dot"></span>Not Checked';
+
+        meta.innerHTML =
+          `<div class="printer-status-row">
+            <span>Printer</span>
+            <strong>Zebra ZD421</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Target</span>
+            <strong>192.168.1.126:9100</strong>
+          </div>
+          <div class="printer-status-row">
+            <span>Server</span>
+            <strong>localhost:3000</strong>
+          </div>`;
+      }
+    }
+
+    function closePrinterModal() {
+      const modal = document.getElementById("printerStatusModal");
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function showPrinterStatusModal(status) {
+      const modal = document.getElementById("printerStatusModal");
+      const icon = document.getElementById("printerModalIcon");
+      const title = document.getElementById("printerModalTitle");
+      const description = document.getElementById("printerModalDescription");
+      const actions = document.getElementById("printerModalActions");
+
+      icon.className = "modal-icon";
+      actions.innerHTML = "";
+
+      if (status === "connected") {
+        icon.classList.add("connected");
+        icon.textContent = "✓";
+        title.textContent = "Printer is Connected";
+        description.textContent = "Your Zebra Printer is successfully connected!";
+
+        const button = document.createElement("button");
+        button.className = "primary";
+        button.textContent = "Proceed to Printing";
+        button.onclick = closePrinterModal;
+        actions.appendChild(button);
+      } else if (status === "disconnected") {
+        icon.classList.add("disconnected");
+        icon.textContent = "!";
+        title.textContent = "Printer is Not Connected";
+        description.textContent =
+          "Your Zebra Printer is not connected. Check the Ethernet port on the back of your printer to confirm connection";
+
+        const button = document.createElement("button");
+        button.className = "primary";
+        button.textContent = "Retry Connection";
+        button.onclick = async () => {
+          closePrinterModal();
+          await checkPrinter();
+        };
+        actions.appendChild(button);
+      } else {
+        icon.classList.add("checking");
+        icon.textContent = "...";
+        title.textContent = "Checking Printer";
+        description.textContent = "Checking printer connection...";
+      }
+
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+      const data = await response.json();
+
+      if (!data.ok && data.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function setExcelDataMessage(message, type = "") {
+      const messageEl = document.getElementById("excelDataMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "excel-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function getSelectedExcelDataType() {
+      const select = document.getElementById("excelDataType");
+      return select ? select.value : "product";
+    }
+
+    const FIXED_COMPANY_NAME = "Bulldog Forklifts";
+
+    function normalizeExcelColumnName(column) {
+      return String(column || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ");
+    }
+
+    function isLocationBarcodeColumn(column) {
+      return normalizeExcelColumnName(column) === "location barcode";
+    }
+
+    function isBarcode128Column(column) {
+      return normalizeExcelColumnName(column) === "barcode 128";
+    }
+
+    function isCompanyNameColumn(column) {
+      return normalizeExcelColumnName(column) === "company name";
+    }
+
+    function isGeneratedBarcodeColumn(type, column) {
+      if (type === "location") {
+        return isLocationBarcodeColumn(column);
+      }
+
+      if (type === "product" || type === "equipment") {
+        return isBarcode128Column(column);
+      }
+
+      return false;
+    }
+
+    function isFixedCompanyColumn(type, column) {
+      return (type === "product" || type === "equipment") && isCompanyNameColumn(column);
+    }
+
+    function getEditableExcelColumns(type, columns) {
+      return columns.filter((column) => !isGeneratedBarcodeColumn(type, column));
+    }
+
+    function getBulkExcelColumns(type, columns) {
+      return columns.filter((column) => {
+        if (isFixedCompanyColumn(type, column)) {
+          return false;
+        }
+
+        if (type === "product" && isBarcode128Column(column)) {
+          return true;
+        }
+
+        return !isGeneratedBarcodeColumn(type, column);
+      });
+    }
+
+    function getGeneratedPreviewColumns(type, columns) {
+      const generatedColumns = [];
+
+      if (type === "location") {
+        const locationBarcodeColumn = columns.find(isLocationBarcodeColumn);
+
+        if (locationBarcodeColumn && !currentBulkColumns.some(isLocationBarcodeColumn)) {
+          generatedColumns.push(locationBarcodeColumn);
+        }
+      }
+
+      if (type === "equipment") {
+        const barcodeColumn = columns.find(isBarcode128Column);
+
+        if (barcodeColumn && !currentBulkColumns.some(isBarcode128Column)) {
+          generatedColumns.push(barcodeColumn);
+        }
+      }
+
+      if (type === "product") {
+        const barcodeColumn = columns.find(isBarcode128Column);
+
+        if (barcodeColumn && !currentBulkColumns.some(isBarcode128Column)) {
+          generatedColumns.push(barcodeColumn);
+        }
+      }
+
+      if (type === "product" || type === "equipment") {
+        const companyColumn = columns.find(isCompanyNameColumn);
+
+        if (companyColumn && !currentBulkColumns.some(isCompanyNameColumn)) {
+          generatedColumns.push(companyColumn);
+        }
+      }
+
+      return generatedColumns;
+    }
+
+    function getBulkPreviewColumns() {
+      return [
+        ...currentBulkColumns,
+        ...getGeneratedPreviewColumns(getSelectedExcelDataType(), savedExcelColumns),
+      ];
+    }
+
+    function getBulkRequiredColumns(type) {
+      if (type === "location") {
+        return ["Aisle", "Bay", "Level", "Bin", "Quantity"];
+      }
+
+      if (type === "equipment") {
+        return ["Unit Number", "Quantity"];
+      }
+
+      if (type === "product") {
+        return ["Quantity"];
+      }
+
+      return ["Quantity"];
+    }
+
+    function findColumnByName(columns, columnName) {
+      const normalizedTarget = normalizeExcelColumnName(columnName);
+      return columns.find((column) => normalizeExcelColumnName(column) === normalizedTarget);
+    }
+
+    function getRowValueByColumn(row, columnName) {
+      if (!row || typeof row !== "object") {
+        return "";
+      }
+
+      if (Object.prototype.hasOwnProperty.call(row, columnName)) {
+        return row[columnName];
+      }
+
+      const normalizedTarget = normalizeExcelColumnName(columnName);
+
+      for (const [key, value] of Object.entries(row)) {
+        if (normalizeExcelColumnName(key) === normalizedTarget) {
+          return value;
+        }
+      }
+
+      return "";
+    }
+
+    function padPreviewTwoDigits(value) {
+      const trimmedValue = String(value ?? "").trim();
+
+      if (!trimmedValue) {
+        return "";
+      }
+
+      const numericValue = Number(trimmedValue);
+
+      if (!Number.isFinite(numericValue)) {
+        return trimmedValue.toUpperCase();
+      }
+
+      return String(numericValue).padStart(2, "0");
+    }
+
+    function buildPreviewLocationBarcode(row) {
+      const aisle = String(getRowValueByColumn(row, "Aisle") ?? "").trim().toUpperCase();
+      const bay = getRowValueByColumn(row, "Bay");
+      const level = getRowValueByColumn(row, "Level");
+      const bin = getRowValueByColumn(row, "Bin");
+
+      if (!aisle || String(bay ?? "").trim() === "" || String(level ?? "").trim() === "" || String(bin ?? "").trim() === "") {
+        return "Auto-generate after required fields are filled";
+      }
+
+      return `${aisle}${padPreviewTwoDigits(bay)}${padPreviewTwoDigits(level)}${padPreviewTwoDigits(bin)}`;
+    }
+
+    function buildPreviewGeneratedValue(type, row, column) {
+      if (type === "location" && isLocationBarcodeColumn(column)) {
+        return buildPreviewLocationBarcode(row);
+      }
+
+      if (type === "equipment" && isBarcode128Column(column)) {
+        const unitNumber = String(getRowValueByColumn(row, "Unit Number") ?? "").trim();
+        return unitNumber || "Auto-generate from Unit Number";
+      }
+
+      if (type === "product" && isBarcode128Column(column)) {
+        const pastedBarcode = String(getRowValueByColumn(row, column) ?? "").trim();
+        return pastedBarcode || "Auto-generate unique 12 digit barcode";
+      }
+
+      if ((type === "product" || type === "equipment") && isCompanyNameColumn(column)) {
+        return FIXED_COMPANY_NAME;
+      }
+
+      return getRowValueByColumn(row, column);
+    }
+
+    function getBulkRowIssues(type, row) {
+      const issues = [];
+      const requiredColumns = getBulkRequiredColumns(type);
+
+      requiredColumns.forEach((requiredColumn) => {
+        const matchingColumn = findColumnByName(currentBulkColumns, requiredColumn) || requiredColumn;
+        const value = getRowValueByColumn(row, matchingColumn);
+
+        if (String(value ?? "").trim() === "") {
+          issues.push(`Missing ${requiredColumn}`);
+        }
+      });
+
+      return issues;
+    }
+
+    function getGeneratedFieldsAutoNoteHtml(type, allColumns) {
+      const notes = [];
+
+      if (type === "location" && allColumns.some(isLocationBarcodeColumn)) {
+        notes.push(
+          "Location Barcode is auto-generated from Aisle, Bay, Level, and Bin."
+        );
+      }
+
+      if (type === "equipment" && allColumns.some(isBarcode128Column)) {
+        notes.push(
+          "Equipment Barcode 128 is auto-generated from Unit Number."
+        );
+      }
+
+      if (type === "product" && allColumns.some(isBarcode128Column)) {
+        notes.push(
+          "Product Barcode 128 is auto-generated as a unique 12 digit number for single-row entry. Bulk upload can preserve pasted Barcode 128 values."
+        );
+      }
+
+      if ((type === "product" || type === "equipment") && allColumns.some(isCompanyNameColumn)) {
+        notes.push(
+          `Company Name is fixed as ${FIXED_COMPANY_NAME} and cannot be changed.`
+        );
+      }
+
+      if (!notes.length) {
+        return "";
+      }
+
+      return `
+        <div class="excel-auto-generated-note">
+          Generated fields are protected.
+          <span>${notes.map(escapeHtml).join(" ")}</span>
+        </div>
+      `;
+    }
+
+    function configureExcelInputForColumn(type, column, input) {
+      if (isFixedCompanyColumn(type, column)) {
+        input.value = FIXED_COMPANY_NAME;
+        input.readOnly = true;
+        input.classList.add("readonly-generated");
+        input.title = "Company Name is fixed and cannot be changed.";
+      }
+    }
+
+    function formatExcelColumnLabel(column) {
+      return String(column || "")
+        .replace(/[_-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function getExcelInputType(column) {
+      const cleanColumn = String(column || "").toLowerCase();
+
+      if (
+        cleanColumn.includes("quantity") ||
+        cleanColumn.includes("qty") ||
+        cleanColumn.includes("count") ||
+        cleanColumn === "bay" ||
+        cleanColumn === "level" ||
+        cleanColumn === "bin"
+      ) {
+        return "number";
+      }
+
+      return "text";
+    }
+
+    function clearExcelDataFields() {
+      const inputs = document.querySelectorAll("[data-excel-column]");
+
+      inputs.forEach((input) => {
+        if (input.classList.contains("readonly-generated")) {
+          input.value = FIXED_COMPANY_NAME;
+        } else {
+          input.value = "";
+        }
+      });
+
+      setExcelDataMessage("Form cleared.", "success");
+    }
+
+    async function loadExcelDataFields() {
+      const type = getSelectedExcelDataType();
+      const fields = document.getElementById("excelDataFields");
+
+      if (!fields) {
+        return;
+      }
+
+      currentExcelColumns = [];
+      currentBulkColumns = [];
+      savedExcelRows = [];
+      savedExcelColumns = [];
+      selectedSavedExcelRowNumbers = new Set();
+
+      const savedTableSearch = document.getElementById("savedTableSearch");
+      if (savedTableSearch) {
+        savedTableSearch.value = "";
+      }
+
+      fields.innerHTML = '<div class="excel-empty-state">Loading Excel columns...</div>';
+      setExcelDataMessage("Loading Excel columns...", "");
+
+      try {
+        const data = await requestJson(`/api/excel/columns/${type}`);
+        const allColumns = Array.isArray(data.columns) ? data.columns : [];
+        currentExcelColumns = getEditableExcelColumns(type, allColumns);
+        currentBulkColumns = getBulkExcelColumns(type, allColumns);
+
+        fields.innerHTML = "";
+
+        if (!allColumns.length) {
+          fields.innerHTML = '<div class="excel-empty-state">No columns were found in this Excel sheet.</div>';
+          setExcelDataMessage("No columns were found.", "error");
+          return;
+        }
+
+        const generatedFieldsNoteHtml = getGeneratedFieldsAutoNoteHtml(type, allColumns);
+
+        if (generatedFieldsNoteHtml) {
+          fields.insertAdjacentHTML("beforeend", generatedFieldsNoteHtml);
+        }
+
+        if (!currentExcelColumns.length) {
+          fields.insertAdjacentHTML("beforeend", '<div class="excel-empty-state">No editable columns were found in this Excel sheet.</div>');
+          setExcelDataMessage("No editable columns were found.", "error");
+          return;
+        }
+
+        currentExcelColumns.forEach((column, index) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "excel-field";
+
+          const label = document.createElement("label");
+          const inputId = `excelField_${index}`;
+          label.setAttribute("for", inputId);
+          label.textContent = formatExcelColumnLabel(column);
+
+          const input = document.createElement("input");
+          input.id = inputId;
+          input.type = getExcelInputType(column);
+          input.dataset.excelColumn = column;
+          input.placeholder = `Enter ${formatExcelColumnLabel(column)}`;
+
+          if (input.type === "number") {
+            input.min = "0";
+            input.step = "1";
+          }
+
+          configureExcelInputForColumn(type, column, input);
+
+          wrapper.appendChild(label);
+          wrapper.appendChild(input);
+          fields.appendChild(wrapper);
+        });
+
+        const hiddenGeneratedCount = allColumns.length - currentExcelColumns.length;
+        const fixedReadOnlyCount = currentExcelColumns.length - currentBulkColumns.length;
+        const hiddenMessageParts = [];
+
+        if (hiddenGeneratedCount > 0) {
+          hiddenMessageParts.push(`${hiddenGeneratedCount} generated column hidden from manual entry.`);
+        }
+
+        if (fixedReadOnlyCount > 0) {
+          hiddenMessageParts.push(`${fixedReadOnlyCount} fixed field shown as read-only.`);
+        }
+
+        const hiddenMessage = hiddenMessageParts.length
+          ? ` ${hiddenMessageParts.join(" ")}`
+          : "";
+
+        setExcelDataMessage(
+          `Loaded ${currentExcelColumns.length} form columns from ${data.sheetName}.${hiddenMessage}`,
+          "success"
+        );
+
+        await loadSavedExcelTableRows(type);
+      } catch (error) {
+        fields.innerHTML = '<div class="excel-empty-state">Unable to load Excel columns.</div>';
+        setExcelDataMessage(error.message || "Unable to load Excel columns.", "error");
+      }
+    }
+
+    async function addExcelDataRow() {
+      const type = getSelectedExcelDataType();
+      const inputs = document.querySelectorAll("[data-excel-column]");
+
+      if (!inputs.length) {
+        setExcelDataMessage("Load Excel columns before adding a row.", "error");
+        return;
+      }
+
+      const row = {};
+
+      inputs.forEach((input) => {
+        row[input.dataset.excelColumn] = input.value;
+      });
+
+      const hasAtLeastOneValue = Object.values(row).some((value) => {
+        return String(value || "").trim() !== "";
+      });
+
+      if (!hasAtLeastOneValue) {
+        setExcelDataMessage("Fill out at least one field before adding a row.", "error");
+        return;
+      }
+
+      setExcelDataMessage("Adding row to Excel sheet...", "");
+      setOutput(`Adding a new ${type} row to the Excel sheet...`);
+
+      try {
+        const data = await requestJson(`/api/excel/add-row/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            row,
+          }),
+        });
+
+        inputs.forEach((input) => {
+          input.value = "";
+        });
+
+        setExcelDataMessage(
+          "Row added successfully. Preview or print again to use the new data.",
+          "success"
+        );
+
+        const gallerySummary = document.getElementById("gallerySummary");
+        gallerySummary.textContent =
+          "Excel row added. Preview or print again to use the latest saved spreadsheet data.";
+
+        setWorkflowStep("labels", "done");
+        await loadSavedExcelTableRows(type);
+        setOutput(data);
+      } catch (error) {
+        setExcelDataMessage(error.message || "Failed to add row.", "error");
+        setOutput(error.message);
+      }
+    }
+
+    async function cleanSelectedExcelRows() {
+      const type = getSelectedExcelDataType();
+
+      const confirmed = confirm(
+        `Clean bad rows for ${type} labels?\n\n` +
+          `This will remove fully blank rows, remove incomplete Location rows, ` +
+          `normalize number fields, regenerate Location Barcode from Aisle/Bay/Level/Bin, ` +
+          `and save the selected Excel file.\n\n` +
+          `Valid rows will stay. A backup copy will be created first.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setExcelDataMessage("Cleaning bad Excel rows...", "");
+      setOutput(`Cleaning bad rows from ${type} Excel sheet...`);
+
+      try {
+        const data = await requestJson(`/api/excel/clean/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setExcelDataMessage(
+          `Rows cleaned successfully. Removed ${data.result.removedRowCount} bad row(s).`,
+          "success"
+        );
+
+        const gallerySummary = document.getElementById("gallerySummary");
+
+        if (gallerySummary) {
+          gallerySummary.textContent =
+            "Bad Excel rows cleaned. Preview or print again to use the cleaned spreadsheet data.";
+        }
+
+        setOutput(
+          `Rows cleaned successfully.
+` +
+            `Removed: ${data.result.removedRowCount} row(s)
+` +
+            `Remaining: ${data.result.cleanedDataRowCount} row(s)
+` +
+            `Backup: ${data.result.backupFile || "created"}`
+        );
+
+        await loadExcelDataFields();
+      } catch (error) {
+        setExcelDataMessage(
+          error.message || "Failed to clean Excel rows.",
+          "error"
+        );
+
+        setOutput(error.message || "Failed to clean Excel rows.");
+      }
+    }
+
+    async function clearSelectedExcelTable() {
+      const type = getSelectedExcelDataType();
+
+      const confirmed = confirm(
+        `Clear the entire ${type} table?\n\n` +
+          `This will delete every data row from the selected Excel sheet.\n\n` +
+          `The header row will stay, but all label rows will be removed.\n\n` +
+          `A backup copy will be created first.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      const doubleConfirmed = confirm(
+        `Are you absolutely sure?\n\n` +
+          `This will remove ALL rows from the selected ${type} Excel table.`
+      );
+
+      if (!doubleConfirmed) {
+        return;
+      }
+
+      setExcelDataMessage("Clearing selected Excel table...", "");
+      setOutput(`Clearing all rows from ${type} Excel table...`);
+
+      try {
+        const data = await requestJson(`/api/excel/clear-table/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setExcelDataMessage(
+          `Table cleared successfully. Removed ${data.result.clearedRowCount} row(s).`,
+          "success"
+        );
+
+        const gallerySummary = document.getElementById("gallerySummary");
+
+        if (gallerySummary) {
+          gallerySummary.textContent =
+            "Excel table cleared. Add or bulk upload labels before previewing or printing.";
+        }
+
+        clearGallery();
+        setOutput(
+          `Table cleared successfully.
+` +
+            `Removed: ${data.result.clearedRowCount} row(s)
+` +
+            `Remaining: ${data.result.remainingDataRowCount} row(s)
+` +
+            `Backup: ${data.result.backupFile || "created"}`
+        );
+
+        await loadExcelDataFields();
+      } catch (error) {
+        setExcelDataMessage(
+          error.message || "Failed to clear selected Excel table.",
+          "error"
+        );
+
+        setOutput(error.message || "Failed to clear selected Excel table.");
+      }
+    }
+
+    function getSavedTableColumns(rows) {
+      const columns = [];
+
+      rows.forEach((row) => {
+        Object.keys(row || {}).forEach((column) => {
+          if (column === "__excelRowNumber") {
+            return;
+          }
+
+          if (!columns.includes(column)) {
+            columns.push(column);
+          }
+        });
+      });
+
+      return columns;
+    }
+
+    function isSavedGeneratedColumn(type, column) {
+      return (
+        isLocationBarcodeColumn(column) ||
+        isBarcode128Column(column) ||
+        isFixedCompanyColumn(type, column)
+      );
+    }
+
+    async function loadSavedExcelTableRows(type = getSelectedExcelDataType()) {
+      const summary = document.getElementById("savedTableSummary");
+      const head = document.getElementById("savedTableHead");
+      const body = document.getElementById("savedTableBody");
+
+      if (summary) {
+        summary.textContent = "Loading saved Excel rows...";
+      }
+
+      try {
+        const data = await requestJson(`/api/excel/rows/${type}`);
+        savedExcelRows = Array.isArray(data.rows) ? data.rows : [];
+        savedExcelColumns = getSavedTableColumns(savedExcelRows);
+        selectedSavedExcelRowNumbers = new Set();
+
+        renderSavedExcelTable();
+      } catch (error) {
+        savedExcelRows = [];
+        savedExcelColumns = [];
+        selectedSavedExcelRowNumbers = new Set();
+
+        if (summary) {
+          summary.textContent = error.message || "Unable to load saved rows.";
+        }
+
+        if (head) {
+          head.innerHTML = "";
+        }
+
+        if (body) {
+          body.innerHTML = `
+            <tr>
+              <td>${escapeHtml(error.message || "Unable to load saved rows.")}</td>
+            </tr>
+          `;
+        }
+      }
+    }
+
+    function getSavedRowExcelNumber(row, fallbackIndex) {
+      const rowNumber = Number(row?.__excelRowNumber);
+
+      if (Number.isInteger(rowNumber) && rowNumber >= 2) {
+        return rowNumber;
+      }
+
+      return fallbackIndex + 2;
+    }
+
+    function getFilteredSavedRows() {
+      const searchInput = document.getElementById("savedTableSearch");
+      const searchText = String(searchInput?.value || "").trim().toLowerCase();
+
+      return savedExcelRows.filter((row) => {
+        if (!searchText) {
+          return true;
+        }
+
+        return Object.entries(row || {}).some(([key, value]) => {
+          if (key === "__excelRowNumber") {
+            return false;
+          }
+
+          return String(value ?? "").toLowerCase().includes(searchText);
+        });
+      });
+    }
+
+    function updateSavedTableDeleteButton() {
+      const button = document.getElementById("deleteSelectedRowsButton");
+
+      if (!button) {
+        return;
+      }
+
+      const selectedCount = selectedSavedExcelRowNumbers.size;
+      button.disabled = selectedCount === 0;
+      button.textContent = selectedCount
+        ? `Delete Selected Rows (${selectedCount})`
+        : "Delete Selected Rows";
+    }
+
+    function toggleSavedRowSelection(excelRowNumber, checked) {
+      const safeRowNumber = Number(excelRowNumber);
+
+      if (!Number.isInteger(safeRowNumber) || safeRowNumber < 2) {
+        return;
+      }
+
+      if (checked) {
+        selectedSavedExcelRowNumbers.add(safeRowNumber);
+      } else {
+        selectedSavedExcelRowNumbers.delete(safeRowNumber);
+      }
+
+      renderSavedExcelTable();
+    }
+
+    function toggleAllSavedRows(checked) {
+      const filteredRows = getFilteredSavedRows();
+
+      filteredRows.forEach((row, index) => {
+        const excelRowNumber = getSavedRowExcelNumber(row, index);
+
+        if (checked) {
+          selectedSavedExcelRowNumbers.add(excelRowNumber);
+        } else {
+          selectedSavedExcelRowNumbers.delete(excelRowNumber);
+        }
+      });
+
+      renderSavedExcelTable();
+    }
+
+    async function deleteSelectedSavedExcelRows() {
+      const type = getSelectedExcelDataType();
+      const selectedRows = Array.from(selectedSavedExcelRowNumbers).sort((a, b) => a - b);
+
+      if (!selectedRows.length) {
+        setExcelDataMessage("Select at least one saved row to delete.", "error");
+        return;
+      }
+
+      const confirmed = confirm(
+        `Delete ${selectedRows.length} selected ${type} row(s)?
+
+` +
+          `Excel row number(s): ${selectedRows.join(", ")}
+
+` +
+          `A backup copy will be created before the rows are removed.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setExcelDataMessage("Deleting selected Excel rows...", "");
+      setOutput(`Deleting selected ${type} Excel row(s): ${selectedRows.join(", ")}`);
+
+      try {
+        const data = await requestJson(`/api/excel/delete-rows/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            excelRowNumbers: selectedRows,
+          }),
+        });
+
+        selectedSavedExcelRowNumbers = new Set();
+
+        setExcelDataMessage(
+          `Deleted ${data.result.deletedRowCount} selected row(s). Backup created.`,
+          "success"
+        );
+
+        setOutput(
+          `Selected rows deleted successfully.
+` +
+            `Deleted: ${data.result.deletedRowCount} row(s)
+` +
+            `Remaining: ${data.result.remainingDataRowCount} row(s)
+` +
+            `Backup: ${data.result.backupFile || "created"}`
+        );
+
+        await loadSavedExcelTableRows(type);
+      } catch (error) {
+        setExcelDataMessage(error.message || "Failed to delete selected rows.", "error");
+        setOutput(error.message || "Failed to delete selected rows.");
+      }
+    }
+
+    function renderSavedExcelTable() {
+      const type = getSelectedExcelDataType();
+      const summary = document.getElementById("savedTableSummary");
+      const head = document.getElementById("savedTableHead");
+      const body = document.getElementById("savedTableBody");
+
+      if (!head || !body || !summary) {
+        return;
+      }
+
+      if (!savedExcelRows.length) {
+        selectedSavedExcelRowNumbers = new Set();
+        updateSavedTableDeleteButton();
+        head.innerHTML = "";
+        summary.textContent = `No saved ${type} rows found.`;
+        body.innerHTML = `
+          <tr>
+            <td>No saved rows found for the selected Excel sheet.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      const filteredRows = getFilteredSavedRows();
+      const visibleRowNumbers = filteredRows.map((row, index) => getSavedRowExcelNumber(row, index));
+      const selectedVisibleCount = visibleRowNumbers.filter((rowNumber) => {
+        return selectedSavedExcelRowNumbers.has(rowNumber);
+      }).length;
+      const allVisibleSelected = visibleRowNumbers.length > 0 && selectedVisibleCount === visibleRowNumbers.length;
+
+      summary.textContent =
+        `Showing ${filteredRows.length} of ${savedExcelRows.length} saved ${type} row(s). ` +
+        `${selectedSavedExcelRowNumbers.size} selected.`;
+
+      head.innerHTML = `
+        <tr>
+          <th class="select-cell">
+            <input
+              type="checkbox"
+              aria-label="Select all visible rows"
+              ${allVisibleSelected ? "checked" : ""}
+              onchange="toggleAllSavedRows(this.checked)"
+            />
+          </th>
+          <th>Excel Row</th>
+          ${savedExcelColumns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}
+        </tr>
+      `;
+
+      if (!filteredRows.length) {
+        updateSavedTableDeleteButton();
+        body.innerHTML = `
+          <tr>
+            <td colspan="${savedExcelColumns.length + 2}">No saved rows match the current search.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      body.innerHTML = filteredRows
+        .map((row, rowIndex) => {
+          const excelRowNumber = getSavedRowExcelNumber(row, rowIndex);
+          const isSelected = selectedSavedExcelRowNumbers.has(excelRowNumber);
+
+          return `
+            <tr class="${isSelected ? "selected-row" : ""}">
+              <td class="select-cell">
+                <input
+                  type="checkbox"
+                  aria-label="Select Excel row ${excelRowNumber}"
+                  ${isSelected ? "checked" : ""}
+                  onchange="toggleSavedRowSelection(${excelRowNumber}, this.checked)"
+                />
+              </td>
+              <td>${excelRowNumber}</td>
+              ${savedExcelColumns
+                .map((column) => {
+                  const cellClass = isSavedGeneratedColumn(type, column) ? "generated-cell" : "";
+                  return `<td class="${cellClass}">${escapeHtml(row[column] ?? "")}</td>`;
+                })
+                .join("")}
+            </tr>
+          `;
+        })
+        .join("");
+
+      updateSavedTableDeleteButton();
+    }
+
+    function setBulkLabelsMessage(message, type = "") {
+      const messageEl = document.getElementById("bulkLabelsMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "bulk-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function openBulkLabelsModal() {
+      const modal = document.getElementById("bulkLabelsModal");
+      const type = getSelectedExcelDataType();
+
+      document.getElementById("bulkLabelsTitle").textContent = `Add Bulk ${type} Labels`;
+
+      const generatedBulkNotes = [];
+
+      if (type === "location") {
+        generatedBulkNotes.push("Location Barcode will be generated automatically.");
+      }
+
+      if (type === "equipment") {
+        generatedBulkNotes.push("Barcode 128 will be generated from Unit Number. Company Name will be Bulldog Forklifts.");
+      }
+
+      if (type === "product") {
+        generatedBulkNotes.push("Barcode 128 can be pasted if it already exists. If blank, a unique 12 digit Barcode 128 will be generated. Company Name will be Bulldog Forklifts.");
+      }
+
+      const bulkDescription = `Paste rows copied from Excel. Expected columns: ${currentBulkColumns.join(", ")}.${
+        generatedBulkNotes.length ? ` ${generatedBulkNotes.join(" ")}` : ""
+      }`;
+
+      document.getElementById("bulkLabelsDescription").textContent = bulkDescription;
+
+      clearBulkLabelsPaste(false);
+      renderBulkPreviewTable();
+
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeBulkLabelsModal() {
+      const modal = document.getElementById("bulkLabelsModal");
+
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function clearBulkLabelsPaste(showMessage = true) {
+      const pasteBox = document.getElementById("bulkPasteBox");
+
+      if (pasteBox) {
+        pasteBox.value = "";
+      }
+
+      parsedBulkRows = [];
+      renderBulkPreviewTable();
+
+      if (showMessage) {
+        setBulkLabelsMessage("Paste cleared.");
+      } else {
+        setBulkLabelsMessage("Paste rows to preview them before upload.");
+      }
+    }
+
+    function splitPastedLine(line) {
+      if (line.includes("\t")) {
+        return line.split("\t");
+      }
+
+      return line.split(",");
+    }
+
+    function parseBulkPasteData() {
+      const pasteBox = document.getElementById("bulkPasteBox");
+      const text = pasteBox ? pasteBox.value : "";
+
+      parsedBulkRows = [];
+
+      if (!currentBulkColumns.length) {
+        setBulkLabelsMessage("No bulk upload columns are loaded. Select an Excel sheet first.", "error");
+        renderBulkPreviewTable();
+        return;
+      }
+
+      const lines = text
+        .split(/\r?\n/)
+        .map((line) => line.trimEnd())
+        .filter((line) => line.trim() !== "");
+
+      lines.forEach((line) => {
+        const cells = splitPastedLine(line);
+
+        const row = {};
+
+        currentBulkColumns.forEach((column, index) => {
+          row[column] = cells[index] !== undefined ? cells[index].trim() : "";
+        });
+
+        parsedBulkRows.push(row);
+      });
+
+      renderBulkPreviewTable();
+
+      if (!parsedBulkRows.length) {
+        setBulkLabelsMessage("Paste rows to preview them before upload.");
+        return;
+      }
+
+      setBulkLabelsMessage(
+        `${parsedBulkRows.length} row(s) ready to upload.`,
+        "success"
+      );
+    }
+
+    function renderBulkPreviewTable() {
+      const head = document.getElementById("bulkPreviewHead");
+      const body = document.getElementById("bulkPreviewBody");
+      const type = getSelectedExcelDataType();
+      const previewColumns = getBulkPreviewColumns();
+
+      if (!head || !body) {
+        return;
+      }
+
+      if (!previewColumns.length) {
+        head.innerHTML = "";
+        body.innerHTML = `
+          <tr>
+            <td>No columns loaded. Select an Excel sheet first.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      head.innerHTML = `
+        <tr>
+          <th>#</th>
+          ${previewColumns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}
+          <th>Status</th>
+        </tr>
+      `;
+
+      if (!parsedBulkRows.length) {
+        body.innerHTML = `
+          <tr>
+            <td colspan="${previewColumns.length + 2}">
+              Paste data to preview rows in spreadsheet-style cells.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      body.innerHTML = parsedBulkRows
+        .map((row, rowIndex) => {
+          const issues = getBulkRowIssues(type, row);
+          const statusClass = issues.length ? "row-status-error" : "row-status-ready";
+          const statusText = issues.length ? issues.join("; ") : "Ready";
+
+          return `
+            <tr>
+              <td>${rowIndex + 1}</td>
+              ${previewColumns
+                .map((column) => {
+                  const rawValue = getRowValueByColumn(row, column);
+                  const value = buildPreviewGeneratedValue(type, row, column);
+                  let cellClass = "";
+
+                  if (issues.some((issue) => normalizeExcelColumnName(issue.replace("Missing ", "")) === normalizeExcelColumnName(column))) {
+                    cellClass = "error-cell";
+                  } else if (isFixedCompanyColumn(type, column)) {
+                    cellClass = "fixed-cell";
+                  } else if (isLocationBarcodeColumn(column) || (type === "equipment" && isBarcode128Column(column)) || (!rawValue && type === "product" && isBarcode128Column(column))) {
+                    cellClass = "generated-cell";
+                  } else if (type === "product" && isBarcode128Column(column) && rawValue) {
+                    cellClass = "warning-cell";
+                  }
+
+                  return `<td class="${cellClass}">${escapeHtml(value || "")}</td>`;
+                })
+                .join("")}
+              <td class="${statusClass}">${escapeHtml(statusText)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    async function uploadBulkLabels() {
+      const type = getSelectedExcelDataType();
+
+      if (!parsedBulkRows.length) {
+        setBulkLabelsMessage("Paste at least one row before uploading.", "error");
+        return;
+      }
+
+      const generatedMessages = [];
+
+      if (type === "location") {
+        generatedMessages.push("Location Barcode will be generated from Aisle, Bay, Level, and Bin.");
+      }
+
+      if (type === "equipment") {
+        generatedMessages.push("Equipment Barcode 128 will be generated from Unit Number.");
+        generatedMessages.push(`Company Name will be fixed as ${FIXED_COMPANY_NAME}.`);
+      }
+
+      if (type === "product") {
+        generatedMessages.push("Pasted Barcode 128 values will be preserved when present.");
+        generatedMessages.push("Blank Barcode 128 values will get a unique generated 12 digit barcode.");
+        generatedMessages.push(`Company Name will be fixed as ${FIXED_COMPANY_NAME}.`);
+      }
+
+      const generatedMessageText = generatedMessages.length
+        ? `\n\n${generatedMessages.join("\n")}`
+        : "";
+
+      const confirmed = confirm(
+        `Upload ${parsedBulkRows.length} pasted row(s) to ${type} labels?\n\n` +
+          `This will append the rows to the selected Excel file in the data folder.` +
+          generatedMessageText
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setBulkLabelsMessage("Uploading bulk labels...", "");
+      setExcelDataMessage("Uploading bulk labels...", "");
+      setOutput(`Uploading ${parsedBulkRows.length} bulk ${type} label row(s)...`);
+
+      try {
+        const data = await requestJson(`/api/excel/bulk-add/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rows: parsedBulkRows,
+          }),
+        });
+
+        setBulkLabelsMessage(
+          `Uploaded ${data.result.uploadedRowCount} row(s). Skipped ${data.result.skippedRowCount} row(s).`,
+          "success"
+        );
+
+        setExcelDataMessage(
+          `Bulk upload complete. Uploaded ${data.result.uploadedRowCount} row(s).`,
+          "success"
+        );
+
+        const gallerySummary = document.getElementById("gallerySummary");
+
+        if (gallerySummary) {
+          gallerySummary.textContent =
+            "Bulk labels uploaded. Preview or print again to use the latest saved spreadsheet data.";
+        }
+
+        setOutput(
+          `Bulk upload complete.
+` +
+            `Uploaded: ${data.result.uploadedRowCount} row(s)
+` +
+            `Skipped: ${data.result.skippedRowCount} row(s)
+` +
+            `Backup: ${data.result.backupFile || "created"}`
+        );
+
+        setWorkflowStep("labels", "done");
+        await loadSavedExcelTableRows(type);
+
+        clearBulkLabelsPaste(false);
+        closeBulkLabelsModal();
+      } catch (error) {
+        setBulkLabelsMessage(
+          error.message || "Bulk upload failed.",
+          "error"
+        );
+
+        setExcelDataMessage(
+          error.message || "Bulk upload failed.",
+          "error"
+        );
+
+        setOutput(error.message || "Bulk upload failed.");
+      }
+    }
+
+
+    async function syncExcelSheets() {
+      clearGallery();
+      setOutput("Syncing Excel sheets...");
+
+      try {
+        const data = await requestJson("/api/sync-excel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setOutput(data);
+
+        const gallerySummary = document.getElementById("gallerySummary");
+        gallerySummary.textContent =
+          "Excel sheets synced. Preview or print again to use the latest saved spreadsheet data.";
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function checkPrinterConnection(showModal = true) {
+      if (showModal) {
+        clearGallery();
+        updatePrinterStatus("checking");
+        setOutput("Checking printer connection...");
+      }
+
+      try {
+        const data = await requestJson("/api/printer/test-connection", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        if (showModal) {
+          setOutput(data);
+        }
+
+        if (data?.ok && data?.result?.ok) {
+          lastPrinterConnected = true;
+          updatePrinterStatus("connected", {
+            ip: data.result.ip,
+            port: data.result.port,
+          });
+
+          setWorkflowStep("printer", "done");
+
+          if (showModal) {
+            showPrinterStatusModal("connected");
+          }
+
+          return true;
+        }
+
+        lastPrinterConnected = false;
+        updatePrinterStatus("disconnected");
+
+        setWorkflowStep("printer", "failed");
+
+        if (showModal) {
+          showPrinterStatusModal("disconnected");
+        }
+
+        return false;
+      } catch (error) {
+        lastPrinterConnected = false;
+
+        if (showModal) {
+          setOutput(error.message);
+        }
+
+        updatePrinterStatus("disconnected");
+        setWorkflowStep("printer", "failed");
+
+        if (showModal) {
+          showPrinterStatusModal("disconnected");
+        }
+
+        return false;
+      }
+    }
+
+    async function checkPrinter() {
+      return checkPrinterConnection(true);
+    }
+
+    async function feedLabel() {
+      clearGallery();
+      setOutput("Feeding one blank label...");
+
+      try {
+        const data = await requestJson("/api/printer/feed", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            count: 1,
+          }),
+        });
+
+        setOutput(data);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function pausePrint() {
+      clearGallery();
+      setOutput("Sending pause command...");
+
+      try {
+        const data = await requestJson("/api/printer/pause", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setOutput(data);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function resumePrint() {
+      clearGallery();
+      setOutput("Sending resume command...");
+
+      try {
+        const data = await requestJson("/api/printer/resume", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setOutput(data);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function terminatePrint() {
+      clearGallery();
+
+      const confirmed = confirm(
+        "Terminate the current queued print job? The label already moving may still finish."
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setOutput("Sending terminate command...");
+
+      try {
+        const data = await requestJson("/api/printer/terminate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setOutput(data);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function reprintLastJob() {
+      clearGallery();
+
+      const confirmed = confirm(
+        "Reprint the previous completed print job exactly as it was last sent?"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setOutput("Reprinting previous completed print job...");
+
+      try {
+        const data = await requestJson("/api/printer/reprint-last", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setWorkflowStep("print", "done");
+        setOutput(data);
+        renderPrintHistory(data.history || []);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function calibratePrinter() {
+      clearGallery();
+
+      const confirmed = confirm(
+        "Calibrate media? The printer may feed several labels."
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setOutput("Sending calibration command...");
+
+      try {
+        const data = await requestJson("/api/printer/calibrate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        });
+
+        setOutput(data);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    function formatLabelType(type) {
+      if (type === "product") {
+        return "Product";
+      }
+
+      if (type === "location") {
+        return "Location";
+      }
+
+      if (type === "equipment") {
+        return "Equipment";
+      }
+
+      return type;
+    }
+
+    function buildValidationMessage(validation) {
+      const summary = validation.summary || {};
+      const duplicateLines = Array.isArray(validation.duplicates)
+        ? validation.duplicates.slice(0, 5).map((item) => {
+            return `- ${item.field}: ${item.value} on Excel rows ${item.excelRowNumbers.join(", ")}`;
+          })
+        : [];
+
+      const warningLines = Array.isArray(validation.warnings)
+        ? validation.warnings.map((warning) => `- ${warning}`)
+        : [];
+
+      return (
+        `${formatLabelType(validation.type)} Labels\\n` +
+        `Mode: ${validation.mode}\\n` +
+        `Valid rows: ${summary.validRows || 0}\\n` +
+        `Printed rows: ${summary.printedRows || 0}\\n` +
+        `Skipped rows: ${summary.skippedRows || 0}\\n` +
+        `Total labels: ${summary.totalLabels || 0}\\n` +
+        `Duplicate warnings: ${validation.duplicates?.length || 0}\\n\\n` +
+        (warningLines.length ? `Warnings:\\n${warningLines.join("\\n")}\\n\\n` : "") +
+        (duplicateLines.length ? `Duplicate details:\\n${duplicateLines.join("\\n")}\\n\\n` : "") +
+        `Continue with print?`
+      );
+    }
+
+    async function getPrintValidation(type, mode) {
+      const response = await fetch(`/api/validate/${type}?mode=${mode}`);
+      const data = await response.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "Print validation failed.");
+      }
+
+      return data;
+    }
+
+    function renderPrintHistory(history) {
+      const list = document.getElementById("printHistoryList");
+
+      if (!list) {
+        return;
+      }
+
+      const items = Array.isArray(history) ? history : [];
+
+      if (!items.length) {
+        list.innerHTML =
+          `<div class="history-item">
+            <strong>No print jobs yet.</strong>
+            <span>Completed jobs will appear here.</span>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = items.slice(0, 10).map((item) => {
+        const date = item.createdAt ? new Date(item.createdAt).toLocaleString() : "Unknown time";
+        const type = formatLabelType(item.type || "label");
+        const action = item.action === "reprint-last" ? "Reprint" : "Print";
+
+        return `<div class="history-item">
+          <strong>${action}: ${type} / ${item.mode || "unknown"}</strong>
+          <span>${date}</span>
+          <span>${item.totalLabels || 0} labels, ${item.skippedRows || 0} skipped, ${item.duplicateCount || 0} duplicate warning(s)</span>
+        </div>`;
+      }).join("");
+    }
+
+    async function loadPrintHistory() {
+      try {
+        const data = await requestJson("/api/history");
+        renderPrintHistory(data.history || []);
+      } catch {
+        renderPrintHistory([]);
+      }
+    }
+
+    async function previewZpl(type) {
+      clearGallery();
+
+      const mode = getMode();
+      setOutput(`Generating ${type} ZPL preview in ${mode} mode...`);
+
+      try {
+        const response = await fetch(`/api/preview/${type}?mode=${mode}`);
+        const data = await response.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || "ZPL preview failed.");
+        }
+
+        setOutput(
+          `Summary:\n${JSON.stringify(data.summary, null, 2)}\n\nZPL:\n${data.zpl}`
+        );
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function previewImage(type) {
+      const mode = getMode();
+      const maxPreviewLabels = getPreviewLimit();
+      const uniqueOnly = getUniquePreviewOnly();
+
+      const gallery = document.getElementById("labelPreviewGallery");
+      const gallerySummary = document.getElementById("gallerySummary");
+
+      gallery.innerHTML = "";
+      gallerySummary.textContent = `Rendering ${type} label images...`;
+
+      setOutput(
+        `Rendering ${type} image previews.\n` +
+        `Mode: ${mode}\n` +
+        `Limit: ${maxPreviewLabels}\n` +
+        `Display: ${uniqueOnly ? "Unique labels only with quantity" : "All duplicate labels"}\n\n` +
+        `This may take a few seconds because requests are slowed down to avoid Labelary rate limits.`
+      );
+
+      try {
+        const response = await fetch(`/api/preview/${type}/image`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode,
+            maxPreviewLabels,
+            uniqueOnly,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || "Image preview failed.");
+        }
+
+        gallerySummary.textContent = data.uniqueOnly
+          ? `Rendered ${data.previewedLabels} unique labels out of ${data.uniqueLabels} unique designs. ` +
+            `Total printable labels including duplicates: ${data.totalLabels}. ` +
+            `Mode: ${data.mode}. Size: ${data.labelSize.width} x ${data.labelSize.height} in. ` +
+            `Delay: ${data.requestDelayMs || 0} ms/request.`
+          : `Rendered ${data.previewedLabels} of ${data.totalLabels} printable labels including duplicates. ` +
+            `Unique designs: ${data.uniqueLabels}. ` +
+            `Mode: ${data.mode}. Size: ${data.labelSize.width} x ${data.labelSize.height} in. ` +
+            `Delay: ${data.requestDelayMs || 0} ms/request.`;
+
+        setOutput({
+          ok: data.ok,
+          type: data.type,
+          mode: data.mode,
+          uniqueOnly: data.uniqueOnly,
+          labelSize: data.labelSize,
+          totalPrintableLabels: data.totalLabels,
+          uniqueLabels: data.uniqueLabels,
+          previewedLabels: data.previewedLabels,
+          requestDelayMs: data.requestDelayMs,
+          summary: data.summary,
+        });
+
+        data.images.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "preview-card";
+
+          const title = document.createElement("div");
+          title.className = "preview-card-title";
+
+          const labelText = document.createElement("span");
+
+          labelText.textContent = data.uniqueOnly
+            ? `Unique Label ${item.index}`
+            : `Label ${item.index}`;
+
+          title.appendChild(labelText);
+
+          if (data.uniqueOnly) {
+            const qty = document.createElement("span");
+            qty.className = "qty-pill";
+            qty.textContent = `Qty ${item.quantity}`;
+            title.appendChild(qty);
+          } else {
+            const status = document.createElement("span");
+            status.className = "pill";
+            status.textContent = item.ok ? "Rendered" : "Error";
+            title.appendChild(status);
+          }
+
+          card.appendChild(title);
+
+          if (item.ok) {
+            const img = document.createElement("img");
+            img.src = item.imageDataUrl;
+            img.alt = data.uniqueOnly
+              ? `Unique Label ${item.index}, Quantity ${item.quantity}`
+              : `Label ${item.index}`;
+            card.appendChild(img);
+          } else {
+            const error = document.createElement("div");
+            error.className = "label-error";
+            error.textContent = item.error;
+            card.appendChild(error);
+          }
+
+          gallery.appendChild(card);
+        });
+
+        setWorkflowStep("preview", "done");
+      } catch (error) {
+        gallerySummary.textContent = "Image preview failed.";
+        setOutput(error.message);
+      }
+    }
+
+    async function downloadPdf(type) {
+      clearGallery();
+
+      const mode = getMode();
+
+      const confirmed = confirm(
+        `Generate and download a PDF for ${type} labels in ${mode} mode?\n\n` +
+          `The PDF will use 2 columns and 9 rows per page.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setOutput(
+        `Generating ${type} labels PDF in ${mode} mode...\n\n` +
+          `The PDF will place labels in 2 columns and 9 rows per page. ` +
+          `New pages will be created automatically after 18 labels.`
+      );
+
+      try {
+        const response = await fetch(`/api/pdf/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode,
+          }),
+        });
+
+        if (!response.ok) {
+          let errorMessage = "PDF download failed.";
+
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch {
+            errorMessage = await response.text();
+          }
+
+          throw new Error(errorMessage);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const contentDisposition = response.headers.get("Content-Disposition") || "";
+        const match = contentDisposition.match(/filename="(.+)"/);
+        const filename = match ? match[1] : `${type}-labels-${mode}.pdf`;
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        setWorkflowStep("preview", "done");
+        setOutput(`PDF generated and downloaded: ${filename}`);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    async function printLabels(type) {
+      clearGallery();
+
+      const mode = getMode();
+      setOutput(`Validating ${type} labels before printing...`);
+
+      try {
+        const printerReady = await checkPrinterConnection(false);
+
+        if (!printerReady) {
+          alert("Printer is not connected. Check the printer connection before printing.");
+          setOutput("Print cancelled because the printer is not connected.");
+          return;
+        }
+
+        const validation = await getPrintValidation(type, mode);
+
+        if (!validation.okToPrint) {
+          alert(validation.summary?.message || "No valid labels are available to print.");
+          setOutput(validation);
+          return;
+        }
+
+        const confirmed = confirm(buildValidationMessage(validation));
+
+        if (!confirmed) {
+          setOutput("Print cancelled after validation.");
+          return;
+        }
+
+        if (Number(validation.summary?.totalLabels || 0) >= 100) {
+          const largeJobConfirmed = confirm(
+            `Large print job warning:\n\n` +
+              `${validation.summary.totalLabels} labels will be sent to the printer. Continue?`
+          );
+
+          if (!largeJobConfirmed) {
+            setOutput("Print cancelled because the job is large.");
+            return;
+          }
+        }
+
+        setOutput(`Printing ${type} labels in ${mode} mode...`);
+
+        const data = await requestJson(`/api/print/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mode,
+          }),
+        });
+
+        setWorkflowStep("print", "done");
+        setOutput(data);
+        renderPrintHistory(data.history || []);
+      } catch (error) {
+        setOutput(error.message);
+      }
+    }
+
+    loadExcelDataFields();
+    loadPrintHistory();
+  </script>
+</body>
+</html>
