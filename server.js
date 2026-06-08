@@ -353,6 +353,93 @@ function validateRequiredExcelFields(type, headers, rowData) {
   }
 }
 
+function parseEquipmentUnitNumberValue(value) {
+  const cleanedValue = String(value ?? "").trim().toUpperCase();
+  const match = cleanedValue.match(/^AR\s*(\d{1,4})$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const numberValue = Number(match[1]);
+
+  if (!Number.isInteger(numberValue) || numberValue < 1 || numberValue > 9999) {
+    return null;
+  }
+
+  return `AR ${String(numberValue).padStart(4, "0")}`;
+}
+
+function normalizeEquipmentUnitTypeValue(value) {
+  const trimmedValue = String(value ?? "").trim();
+  const allowedTypes = ["Sales", "Rental", "General"];
+
+  return allowedTypes.find((allowedType) => {
+    return allowedType.toLowerCase() === trimmedValue.toLowerCase();
+  });
+}
+
+function validateExcelConstraints(type, headers, rowData) {
+  if (type === "equipment") {
+    const unitNumberHeader = findHeader(headers, "Unit Number");
+
+    if (unitNumberHeader) {
+      const value = getIncomingValueByHeader(rowData, unitNumberHeader);
+
+      if (String(value ?? "").trim() !== "") {
+        const normalizedUnitNumber = parseEquipmentUnitNumberValue(value);
+
+        if (!normalizedUnitNumber) {
+          throw new Error("Unit Number must be between AR 0001 and AR 9999.");
+        }
+
+        rowData[unitNumberHeader] = normalizedUnitNumber;
+      }
+    }
+
+    const unitTypeHeader = findHeader(headers, "Unit type") || findHeader(headers, "Unit Type");
+
+    if (unitTypeHeader) {
+      const value = getIncomingValueByHeader(rowData, unitTypeHeader);
+
+      if (String(value ?? "").trim() !== "") {
+        const normalizedUnitType = normalizeEquipmentUnitTypeValue(value);
+
+        if (!normalizedUnitType) {
+          throw new Error("Unit Type must be Sales, Rental, or General.");
+        }
+
+        rowData[unitTypeHeader] = normalizedUnitType;
+      }
+    }
+  }
+
+  if (type === "location") {
+    ["Bay", "Level", "Bin"].forEach((headerName) => {
+      const header = findHeader(headers, headerName);
+
+      if (!header) {
+        return;
+      }
+
+      const value = getIncomingValueByHeader(rowData, header);
+
+      if (String(value ?? "").trim() === "") {
+        return;
+      }
+
+      const numericValue = Number(value);
+
+      if (!Number.isInteger(numericValue) || numericValue < 0 || numericValue > 99) {
+        throw new Error(`${header} must be a whole number from 0 to 99.`);
+      }
+
+      rowData[header] = numericValue;
+    });
+  }
+}
+
+
 function padTwoDigits(value) {
   const trimmedValue = String(value ?? "").trim();
 
@@ -572,6 +659,7 @@ function buildExcelRowFromRequest(type, headers, incomingRow, options = {}) {
   const rowData =
     incomingRow && typeof incomingRow === "object" ? { ...incomingRow } : {};
 
+  validateExcelConstraints(type, headers, rowData);
   applyGeneratedExcelValues(type, headers, rowData, options);
   validateRequiredExcelFields(type, headers, rowData);
 
@@ -993,6 +1081,91 @@ function deleteExcelRows(type, excelRowNumbers) {
   };
 }
 
+function updateExcelRow(type, excelRowNumber, incomingRow) {
+  const safeRowNumber = Number(excelRowNumber);
+
+  if (!Number.isInteger(safeRowNumber) || safeRowNumber < 2) {
+    throw new Error("Select a valid saved Excel row to edit.");
+  }
+
+  const {
+    filePath,
+    workbook,
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  } = readExcelWorkbook(type);
+
+  const dataRowIndex = safeRowNumber - 2;
+
+  if (dataRowIndex < 0 || dataRowIndex >= rowsAsArrays.length - 1) {
+    throw new Error("Selected Excel row was not found in the current sheet.");
+  }
+
+  const existingRowArray = rowsAsArrays[safeRowNumber - 1] || [];
+  const mergedRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    mergedRow[header] = existingRowArray[columnIndex] ?? "";
+  });
+
+  Object.entries(incomingRow || {}).forEach(([key, value]) => {
+    const header = findHeader(headers, key);
+
+    if (header) {
+      mergedRow[header] = value;
+    }
+  });
+
+  const reservedGeneratedBarcodes = createGeneratedBarcodeReserve(
+    type,
+    headers,
+    rowsAsArrays.filter((rowArray, index) => index !== safeRowNumber - 1)
+  );
+
+  const values = buildExcelRowFromRequest(type, headers, mergedRow, {
+    preserveExistingGeneratedValues: true,
+    reservedGeneratedBarcodes,
+  });
+
+  const backupPath = createExcelBackup(filePath);
+  const rebuiltRows = rowsAsArrays.map((rowArray, index) => {
+    if (index === safeRowNumber - 1) {
+      return values;
+    }
+
+    return rowArray;
+  });
+
+  const newWorksheet = XLSX.utils.aoa_to_sheet(rebuiltRows);
+
+  workbook.Sheets[sheetName] = newWorksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+
+  const updatedRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    updatedRow[header] = values[columnIndex] ?? "";
+  });
+
+  return {
+    type,
+    sheetName,
+    excelRowNumber: safeRowNumber,
+    columns: usableHeaders,
+    row: updatedRow,
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
 function buildFeedOneBlankLabelCommand() {
   return "~PH\n";
 }
@@ -1343,6 +1516,828 @@ app.get("/api/history", (req, res) => {
   });
 });
 
+
+const partsInventoryFile = path.join(__dirname, "data", "parts-inventory.xlsx");
+const PARTS_SHEET_NAME = "Parts";
+const PARTS_HEADERS = [
+  "Part ID",
+  "Part Number",
+  "Part Name",
+  "Description",
+  "Category",
+  "Vendor",
+  "Unit Cost",
+  "Sell Price",
+  "Quantity On Hand",
+  "Reorder Point",
+  "Primary Location",
+  "Barcode 128",
+  "Status",
+  "Notes",
+  "Date Created",
+  "Last Updated",
+];
+const PARTS_CATEGORY_VALUES = [
+  "Filters",
+  "Hydraulics",
+  "Electrical",
+  "Tires",
+  "Fluids",
+  "Hardware",
+  "Attachments",
+  "Other",
+];
+const PARTS_STATUS_VALUES = ["Active", "Inactive", "Discontinued"];
+
+function ensurePartsInventoryWorkbook() {
+  const dataDir = path.dirname(partsInventoryFile);
+
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, {
+      recursive: true,
+    });
+  }
+
+  if (fs.existsSync(partsInventoryFile)) {
+    return;
+  }
+
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet([PARTS_HEADERS]);
+  XLSX.utils.book_append_sheet(workbook, worksheet, PARTS_SHEET_NAME);
+  XLSX.writeFile(workbook, partsInventoryFile);
+}
+
+function readPartsInventoryWorkbook() {
+  ensurePartsInventoryWorkbook();
+
+  const workbook = XLSX.readFile(partsInventoryFile, {
+    cellDates: true,
+    cellNF: false,
+    cellText: false,
+  });
+
+  const sheetName = workbook.SheetNames.includes(PARTS_SHEET_NAME)
+    ? PARTS_SHEET_NAME
+    : workbook.SheetNames[0];
+
+  if (!sheetName) {
+    throw new Error(`No worksheet found in ${partsInventoryFile}.`);
+  }
+
+  const worksheet = workbook.Sheets[sheetName];
+
+  if (!worksheet) {
+    throw new Error(`Worksheet ${sheetName} could not be read.`);
+  }
+
+  let rowsAsArrays = XLSX.utils.sheet_to_json(worksheet, {
+    header: 1,
+    defval: "",
+    blankrows: false,
+  });
+
+  if (!rowsAsArrays.length) {
+    rowsAsArrays = [PARTS_HEADERS];
+  }
+
+  const headerRow = rowsAsArrays[0] || [];
+  let headers = headerRow.map((header) => String(header || "").trimEnd());
+  let changedHeaders = false;
+
+  PARTS_HEADERS.forEach((requiredHeader) => {
+    if (!findHeader(headers, requiredHeader)) {
+      headers.push(requiredHeader);
+      changedHeaders = true;
+    }
+  });
+
+  if (changedHeaders) {
+    rowsAsArrays[0] = headers;
+    const rebuiltWorksheet = XLSX.utils.aoa_to_sheet(rowsAsArrays);
+    workbook.Sheets[sheetName] = rebuiltWorksheet;
+    writeWorkbookToDisk(workbook, partsInventoryFile);
+  }
+
+  const usableHeaders = headers.filter((header) => String(header || "").trim() !== "");
+
+  return {
+    filePath: partsInventoryFile,
+    workbook,
+    worksheet: workbook.Sheets[sheetName],
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  };
+}
+
+function getPartsRowsAsObjects() {
+  const { worksheet, usableHeaders } = readPartsInventoryWorkbook();
+
+  const rows = XLSX.utils.sheet_to_json(worksheet, {
+    defval: "",
+    blankrows: false,
+  }).map((row, index) => ({
+    __excelRowNumber: index + 2,
+    ...row,
+  }));
+
+  return {
+    rows,
+    columns: usableHeaders,
+  };
+}
+
+function parseNonNegativeNumber(value, fieldName, allowBlank = true) {
+  const text = String(value ?? "").trim();
+
+  if (!text) {
+    if (allowBlank) {
+      return 0;
+    }
+
+    throw new Error(`${fieldName} is required.`);
+  }
+
+  const numericValue = Number(text);
+
+  if (!Number.isFinite(numericValue) || numericValue < 0) {
+    throw new Error(`${fieldName} must be a number of 0 or higher.`);
+  }
+
+  return numericValue;
+}
+
+function normalizePartsChoice(value, allowedValues, fieldName, defaultValue) {
+  const text = String(value ?? "").trim();
+
+  if (!text) {
+    return defaultValue;
+  }
+
+  const match = allowedValues.find((allowedValue) => {
+    return allowedValue.toLowerCase() === text.toLowerCase();
+  });
+
+  if (!match) {
+    throw new Error(`${fieldName} must be one of: ${allowedValues.join(", ")}.`);
+  }
+
+  return match;
+}
+
+function normalizePartBarcode(value, reservedBarcodes) {
+  const text = String(value ?? "").trim();
+
+  if (!text) {
+    return generateUniqueProductBarcode(reservedBarcodes);
+  }
+
+  if (!/^[A-Za-z0-9 _.-]{3,32}$/.test(text)) {
+    throw new Error("Barcode 128 must be 3 to 32 letters, numbers, spaces, dots, dashes, or underscores.");
+  }
+
+  return text;
+}
+
+function getNextPartId(rowsAsArrays, headers) {
+  const partIdIndex = getHeaderIndex(headers, "Part ID");
+  let maxNumber = 0;
+
+  if (partIdIndex < 0) {
+    return "P-000001";
+  }
+
+  rowsAsArrays.slice(1).forEach((rowArray) => {
+    const value = String(rowArray[partIdIndex] ?? "").trim();
+    const match = value.match(/^P-(\d{1,})$/i);
+
+    if (match) {
+      const numberValue = Number(match[1]);
+
+      if (Number.isInteger(numberValue) && numberValue > maxNumber) {
+        maxNumber = numberValue;
+      }
+    }
+  });
+
+  return `P-${String(maxNumber + 1).padStart(6, "0")}`;
+}
+
+function getPartsReservedValues(headers, rowsAsArrays, skipExcelRowNumber = null) {
+  const partNumberIndex = getHeaderIndex(headers, "Part Number");
+  const barcodeIndex = getHeaderIndex(headers, "Barcode 128");
+  const partNumbers = new Set();
+  const barcodes = new Set();
+
+  rowsAsArrays.slice(1).forEach((rowArray, index) => {
+    const excelRowNumber = index + 2;
+
+    if (skipExcelRowNumber && excelRowNumber === skipExcelRowNumber) {
+      return;
+    }
+
+    if (partNumberIndex >= 0) {
+      const partNumber = String(rowArray[partNumberIndex] ?? "").trim().toLowerCase();
+
+      if (partNumber) {
+        partNumbers.add(partNumber);
+      }
+    }
+
+    if (barcodeIndex >= 0) {
+      const barcode = String(rowArray[barcodeIndex] ?? "").trim();
+
+      if (barcode) {
+        barcodes.add(barcode);
+      }
+    }
+  });
+
+  return {
+    partNumbers,
+    barcodes,
+  };
+}
+
+function buildPartsRowFromRequest(headers, incomingRow, options = {}) {
+  const rowData = incomingRow && typeof incomingRow === "object" ? { ...incomingRow } : {};
+  const now = new Date().toISOString();
+  const reserved = options.reserved || {
+    partNumbers: new Set(),
+    barcodes: new Set(),
+  };
+
+  const existingRow = options.existingRow || {};
+  const partNumber = String(getIncomingValueByHeader(rowData, "Part Number") ?? "").trim();
+  const partName = String(getIncomingValueByHeader(rowData, "Part Name") ?? "").trim();
+
+  if (!partNumber) {
+    throw new Error("Part Number is required.");
+  }
+
+  if (!partName) {
+    throw new Error("Part Name is required.");
+  }
+
+  if (reserved.partNumbers.has(partNumber.toLowerCase())) {
+    throw new Error(`Part Number ${partNumber} already exists.`);
+  }
+
+  const barcode = normalizePartBarcode(getIncomingValueByHeader(rowData, "Barcode 128"), reserved.barcodes);
+
+  if (reserved.barcodes.has(barcode)) {
+    throw new Error(`Barcode 128 ${barcode} already exists.`);
+  }
+
+  const quantityOnHand = parseNonNegativeNumber(
+    getIncomingValueByHeader(rowData, "Quantity On Hand"),
+    "Quantity On Hand",
+    true
+  );
+  const reorderPoint = parseNonNegativeNumber(
+    getIncomingValueByHeader(rowData, "Reorder Point"),
+    "Reorder Point",
+    true
+  );
+  const unitCost = parseNonNegativeNumber(
+    getIncomingValueByHeader(rowData, "Unit Cost"),
+    "Unit Cost",
+    true
+  );
+  const sellPrice = parseNonNegativeNumber(
+    getIncomingValueByHeader(rowData, "Sell Price"),
+    "Sell Price",
+    true
+  );
+
+  const cleanRow = {
+    "Part ID": options.partId || existingRow["Part ID"] || "",
+    "Part Number": partNumber,
+    "Part Name": partName,
+    Description: String(getIncomingValueByHeader(rowData, "Description") ?? "").trim(),
+    Category: normalizePartsChoice(
+      getIncomingValueByHeader(rowData, "Category"),
+      PARTS_CATEGORY_VALUES,
+      "Category",
+      "Other"
+    ),
+    Vendor: String(getIncomingValueByHeader(rowData, "Vendor") ?? "").trim(),
+    "Unit Cost": unitCost,
+    "Sell Price": sellPrice,
+    "Quantity On Hand": quantityOnHand,
+    "Reorder Point": reorderPoint,
+    "Primary Location": String(getIncomingValueByHeader(rowData, "Primary Location") ?? "").trim().toUpperCase(),
+    "Barcode 128": barcode,
+    Status: normalizePartsChoice(
+      getIncomingValueByHeader(rowData, "Status"),
+      PARTS_STATUS_VALUES,
+      "Status",
+      "Active"
+    ),
+    Notes: String(getIncomingValueByHeader(rowData, "Notes") ?? "").trim(),
+    "Date Created": options.dateCreated || existingRow["Date Created"] || now,
+    "Last Updated": now,
+  };
+
+  return headers.map((header) => {
+    if (!header || String(header).trim() === "") {
+      return "";
+    }
+
+    return Object.prototype.hasOwnProperty.call(cleanRow, header)
+      ? cleanRow[header]
+      : String(getIncomingValueByHeader(rowData, header) ?? "").trim();
+  });
+}
+
+function getPartIdNumber(partId) {
+  const match = String(partId || "").trim().match(/^P-(\d{1,})$/i);
+
+  if (!match) {
+    return 0;
+  }
+
+  const numberValue = Number(match[1]);
+  return Number.isInteger(numberValue) ? numberValue : 0;
+}
+
+function buildPartIdFromNumber(numberValue) {
+  return `P-${String(numberValue).padStart(6, "0")}`;
+}
+
+function appendPartsInventoryRow(incomingRow) {
+  const {
+    filePath,
+    workbook,
+    worksheet,
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  } = readPartsInventoryWorkbook();
+
+  const reserved = getPartsReservedValues(headers, rowsAsArrays);
+  const partId = getNextPartId(rowsAsArrays, headers);
+  const values = buildPartsRowFromRequest(headers, incomingRow, {
+    reserved,
+    partId,
+  });
+  const backupPath = createExcelBackup(filePath);
+  const nextExcelRowNumber = rowsAsArrays.length + 1;
+
+  XLSX.utils.sheet_add_aoa(worksheet, [values], {
+    origin: -1,
+  });
+
+  workbook.Sheets[sheetName] = worksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+  const addedRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    addedRow[header] = values[columnIndex] ?? "";
+  });
+
+  return {
+    sheetName,
+    excelRowNumber: nextExcelRowNumber,
+    columns: usableHeaders,
+    row: addedRow,
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+function updatePartsInventoryRow(excelRowNumber, incomingRow) {
+  const safeRowNumber = Number(excelRowNumber);
+
+  if (!Number.isInteger(safeRowNumber) || safeRowNumber < 2) {
+    throw new Error("Select a valid saved part row to edit.");
+  }
+
+  const {
+    filePath,
+    workbook,
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  } = readPartsInventoryWorkbook();
+
+  if (safeRowNumber - 1 >= rowsAsArrays.length) {
+    throw new Error("Selected part row was not found in the current sheet.");
+  }
+
+  const existingRowArray = rowsAsArrays[safeRowNumber - 1] || [];
+  const existingRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    existingRow[header] = existingRowArray[columnIndex] ?? "";
+  });
+
+  const reserved = getPartsReservedValues(headers, rowsAsArrays, safeRowNumber);
+  const values = buildPartsRowFromRequest(headers, incomingRow, {
+    reserved,
+    existingRow,
+    partId: existingRow["Part ID"] || getNextPartId(rowsAsArrays, headers),
+    dateCreated: existingRow["Date Created"] || new Date().toISOString(),
+  });
+
+  const backupPath = createExcelBackup(filePath);
+  const rebuiltRows = rowsAsArrays.map((rowArray, index) => {
+    if (index === safeRowNumber - 1) {
+      return values;
+    }
+
+    return rowArray;
+  });
+
+  const newWorksheet = XLSX.utils.aoa_to_sheet(rebuiltRows);
+  workbook.Sheets[sheetName] = newWorksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+  const updatedRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    updatedRow[header] = values[columnIndex] ?? "";
+  });
+
+  return {
+    sheetName,
+    excelRowNumber: safeRowNumber,
+    columns: usableHeaders,
+    row: updatedRow,
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+function appendBulkPartsInventoryRows(incomingRows) {
+  if (!Array.isArray(incomingRows) || !incomingRows.length) {
+    throw new Error("Paste at least one part row before uploading.");
+  }
+
+  const {
+    filePath,
+    workbook,
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  } = readPartsInventoryWorkbook();
+
+  const reserved = getPartsReservedValues(headers, rowsAsArrays);
+  const startingPartIdNumber = getPartIdNumber(getNextPartId(rowsAsArrays, headers));
+  let nextPartIdNumber = startingPartIdNumber;
+  const acceptedRows = [];
+  const skippedRows = [];
+
+  incomingRows.forEach((incomingRow, index) => {
+    try {
+      const partId = buildPartIdFromNumber(nextPartIdNumber);
+      const values = buildPartsRowFromRequest(headers, incomingRow, {
+        reserved,
+        partId,
+      });
+
+      const partNumberIndex = getHeaderIndex(headers, "Part Number");
+      const barcodeIndex = getHeaderIndex(headers, "Barcode 128");
+      const cleanPartNumber = partNumberIndex >= 0 ? String(values[partNumberIndex] ?? "").trim() : "";
+      const cleanBarcode = barcodeIndex >= 0 ? String(values[barcodeIndex] ?? "").trim() : "";
+
+      if (cleanPartNumber) {
+        reserved.partNumbers.add(cleanPartNumber.toLowerCase());
+      }
+
+      if (cleanBarcode) {
+        reserved.barcodes.add(cleanBarcode);
+      }
+
+      acceptedRows.push({
+        sourceRowNumber: index + 1,
+        excelRowNumber: rowsAsArrays.length + acceptedRows.length + 1,
+        values,
+      });
+      nextPartIdNumber += 1;
+    } catch (error) {
+      skippedRows.push({
+        sourceRowNumber: index + 1,
+        error: error.message,
+      });
+    }
+  });
+
+  if (!acceptedRows.length) {
+    const details = skippedRows.map((row) => `Row ${row.sourceRowNumber}: ${row.error}`).join("; ");
+    throw new Error(details || "No valid part rows were found to upload.");
+  }
+
+  const backupPath = createExcelBackup(filePath);
+  const rebuiltRows = [
+    ...rowsAsArrays,
+    ...acceptedRows.map((row) => row.values),
+  ];
+  const newWorksheet = XLSX.utils.aoa_to_sheet(rebuiltRows);
+  workbook.Sheets[sheetName] = newWorksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+
+  return {
+    sheetName,
+    uploadedRowCount: acceptedRows.length,
+    skippedRowCount: skippedRows.length,
+    skippedRows,
+    uploadedExcelRowNumbers: acceptedRows.map((row) => row.excelRowNumber),
+    columns: usableHeaders,
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+function deletePartsInventoryRows(excelRowNumbers) {
+  if (!Array.isArray(excelRowNumbers) || !excelRowNumbers.length) {
+    throw new Error("Select at least one saved part row to delete.");
+  }
+
+  const safeRowNumbers = Array.from(
+    new Set(
+      excelRowNumbers
+        .map((rowNumber) => Number(rowNumber))
+        .filter((rowNumber) => Number.isInteger(rowNumber) && rowNumber >= 2)
+    )
+  ).sort((a, b) => a - b);
+
+  if (!safeRowNumbers.length) {
+    throw new Error("Select at least one valid saved part row to delete.");
+  }
+
+  const {
+    filePath,
+    workbook,
+    sheetName,
+    headers,
+    rowsAsArrays,
+  } = readPartsInventoryWorkbook();
+
+  const rowNumberSet = new Set(safeRowNumbers);
+  const backupPath = createExcelBackup(filePath);
+  const keptRows = [headers];
+  const deletedRows = [];
+
+  rowsAsArrays.slice(1).forEach((rowArray, index) => {
+    const excelRowNumber = index + 2;
+
+    if (rowNumberSet.has(excelRowNumber)) {
+      deletedRows.push({
+        excelRowNumber,
+        values: rowArray,
+      });
+      return;
+    }
+
+    keptRows.push(rowArray);
+  });
+
+  if (!deletedRows.length) {
+    throw new Error("No matching part rows were found to delete.");
+  }
+
+  const newWorksheet = XLSX.utils.aoa_to_sheet(keptRows);
+  workbook.Sheets[sheetName] = newWorksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+
+  return {
+    sheetName,
+    deletedRowCount: deletedRows.length,
+    remainingDataRowCount: keptRows.length - 1,
+    deletedExcelRowNumbers: deletedRows.map((row) => row.excelRowNumber),
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+app.get("/api/parts/columns", (req, res) => {
+  try {
+    const { filePath, sheetName, usableHeaders } = readPartsInventoryWorkbook();
+
+    res.json({
+      ok: true,
+      sheetName,
+      columns: usableHeaders,
+      filePath,
+      relativeFilePath: path.relative(__dirname, filePath),
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/parts/import-template", (req, res) => {
+  try {
+    const importHeaders = [
+      "Part Number",
+      "Part Name",
+      "Description",
+      "Category",
+      "Vendor",
+      "Unit Cost",
+      "Sell Price",
+      "Quantity On Hand",
+      "Reorder Point",
+      "Primary Location",
+      "Barcode 128",
+      "Status",
+      "Notes",
+    ];
+
+    const sampleRow = [
+      "HYD-1001",
+      "Hydraulic Filter",
+      "Standard hydraulic filter",
+      "Filters",
+      "Default Vendor",
+      12.5,
+      24.99,
+      10,
+      3,
+      "A010101",
+      "",
+      "Active",
+      "Barcode can be left blank to auto-generate",
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      importHeaders,
+      sampleRow,
+    ]);
+
+    worksheet["!cols"] = importHeaders.map((header) => {
+      return {
+        wch: Math.max(String(header).length + 4, 16),
+      };
+    });
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Parts Import");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="parts-inventory-import-template.xlsx"'
+    );
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message || "Failed to generate parts import template.",
+    });
+  }
+});
+
+app.get("/api/parts/rows", (req, res) => {
+  try {
+    const { filePath, sheetName } = readPartsInventoryWorkbook();
+    const { rows, columns } = getPartsRowsAsObjects();
+
+    res.json({
+      ok: true,
+      sheetName,
+      count: rows.length,
+      columns,
+      rows,
+      filePath,
+      relativeFilePath: path.relative(__dirname, filePath),
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/parts/add-row", (req, res) => {
+  try {
+    const incomingRow = req.body?.row || req.body || {};
+    const result = appendPartsInventoryRow(incomingRow);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "add-part-row",
+      message: "Part row added successfully and saved to the parts inventory Excel file.",
+      addedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/parts/bulk-add", (req, res) => {
+  try {
+    const incomingRows = Array.isArray(req.body?.rows) ? req.body.rows : [];
+    const result = appendBulkPartsInventoryRows(incomingRows);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "bulk-add-part-rows",
+      message: "Bulk part rows added successfully and saved to the parts inventory Excel file.",
+      addedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/parts/update-row", (req, res) => {
+  try {
+    const excelRowNumber = req.body?.excelRowNumber;
+    const incomingRow = req.body?.row || {};
+    const result = updatePartsInventoryRow(excelRowNumber, incomingRow);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "update-part-row",
+      message: "Selected part row updated successfully and saved to the parts inventory Excel file.",
+      updatedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/parts/delete-rows", (req, res) => {
+  try {
+    const excelRowNumbers = Array.isArray(req.body?.excelRowNumbers)
+      ? req.body.excelRowNumbers
+      : [];
+    const result = deletePartsInventoryRows(excelRowNumbers);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "delete-part-rows",
+      message: "Selected part rows deleted successfully. Header row was kept.",
+      deletedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
 app.post("/api/sync-excel", async (req, res) => {
   try {
     const status = buildStatusSummary();
@@ -1505,6 +2500,33 @@ app.post("/api/excel/clear-table/:type", (req, res) => {
       action: "clear-excel-table",
       message: "Excel table cleared successfully. Header row was kept.",
       clearedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/excel/update-row/:type", (req, res) => {
+  try {
+    const type = req.params.type;
+    getLabelModule(type);
+
+    const excelRowNumber = req.body?.excelRowNumber;
+    const incomingRow = req.body?.row || {};
+
+    const result = updateExcelRow(type, excelRowNumber, incomingRow);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "update-excel-row",
+      message: "Selected Excel row updated successfully and saved to the Excel file.",
+      updatedAt: new Date().toISOString(),
       result,
       status,
     });
@@ -2026,4 +3048,5 @@ app.listen(PORT, () => {
   console.log(`Product:   ${excelDataFiles.product}`);
   console.log(`Location:  ${excelDataFiles.location}`);
   console.log(`Equipment: ${excelDataFiles.equipment}`);
+  console.log(`Parts:     ${partsInventoryFile}`);
 });
