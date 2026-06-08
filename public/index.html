@@ -208,6 +208,68 @@
       min-width: 0;
     }
 
+    .app-page.hidden {
+      display: none;
+    }
+
+    .inventory-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .inventory-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .inventory-card h2,
+    .inventory-card h3 {
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+      margin: 0 0 8px;
+    }
+
+    .inventory-card p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .inventory-stat {
+      color: var(--brand-blue-dark);
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 6px;
+    }
+
+    .inventory-placeholder-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .inventory-placeholder-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .inventory-placeholder-item strong {
+      color: var(--brand-blue-dark);
+    }
+
     .breadcrumb {
       color: var(--text-muted);
       font-size: 13px;
@@ -398,6 +460,19 @@
       background: white;
       color: var(--danger);
       border-color: var(--danger);
+    }
+
+    button.orange {
+      background: var(--warning);
+      color: #3b2600;
+      border-color: var(--warning);
+    }
+
+    button.orange:disabled,
+    button.danger:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: none;
     }
 
     button.toggle-selected {
@@ -1033,6 +1108,7 @@
       margin-top: 4px;
     }
 
+    .edit-row-modal,
     .bulk-modal {
       width: min(1100px, 96vw);
       max-height: 88vh;
@@ -1044,6 +1120,7 @@
       padding: 22px;
     }
 
+    .edit-row-modal-header,
     .bulk-modal-header {
       display: flex;
       justify-content: space-between;
@@ -1052,12 +1129,14 @@
       margin-bottom: 16px;
     }
 
+    .edit-row-modal-header h2,
     .bulk-modal-header h2 {
       color: var(--brand-blue-dark);
       margin: 0 0 6px;
       font-size: 22px;
     }
 
+    .edit-row-modal-header p,
     .bulk-modal-header p {
       color: var(--text-muted);
       margin: 0;
@@ -1065,6 +1144,7 @@
       line-height: 1.45;
     }
 
+    .edit-close-button,
     .bulk-close-button {
       min-width: 34px;
       height: 34px;
@@ -1132,6 +1212,7 @@
       background: #fff;
     }
 
+    .edit-row-message,
     .bulk-message {
       min-height: 22px;
       font-size: 13px;
@@ -1139,11 +1220,13 @@
       color: var(--text-muted);
     }
 
-    .bulk-message.success {
+    .bulk-message.success,
+    .edit-row-message.success {
       color: #237804;
     }
 
-    .bulk-message.error {
+    .bulk-message.error,
+    .edit-row-message.error {
       color: var(--danger);
     }
 
@@ -1323,7 +1406,8 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
-      .label-grid {
+      .label-grid,
+      .inventory-overview-grid {
         grid-template-columns: 1fr;
       }
 
@@ -1428,7 +1512,7 @@
           <p>Parts Manager</p>
         </div>
 
-        <a class="nav-item active" href="#">
+        <a id="labelPrintingNav" class="nav-item active" href="#" onclick="showAppPage('labelPrinting'); return false;">
           <span class="nav-icon">⌁</span>
           <span>Label Printing</span>
         </a>
@@ -1440,7 +1524,7 @@
           <span>Customers</span>
         </a>
 
-        <a class="nav-item" href="#">
+        <a id="partsInventoryNav" class="nav-item" href="#" onclick="showAppPage('partsInventory'); return false;">
           <span class="nav-icon">▤</span>
           <span>Parts Inventory</span>
         </a>
@@ -1461,6 +1545,7 @@
       </aside>
 
       <main class="content">
+        <div id="labelPrintingPage" class="app-page">
         <div class="breadcrumb">
           <span>⌂ Home</span>
           <span>/</span>
@@ -1596,6 +1681,15 @@
                         placeholder="Search saved rows..."
                         oninput="renderSavedExcelTable()"
                       />
+                      <button
+                        id="editSelectedRowButton"
+                        class="orange"
+                        type="button"
+                        onclick="openEditSelectedRowModal()"
+                        disabled
+                      >
+                        Edit Selected Row
+                      </button>
                       <button
                         id="deleteSelectedRowsButton"
                         class="danger"
@@ -1821,6 +1915,319 @@
             </section>
           </aside>
         </div>
+        </div>
+
+        <div id="partsInventoryPage" class="app-page hidden">
+          <div class="breadcrumb">
+            <span>⌂ Home</span>
+            <span>/</span>
+            <span>Database & Inventories</span>
+            <span>/</span>
+            <strong>Parts Inventory</strong>
+          </div>
+
+          <div class="page-header">
+            <div class="title-row">
+              <button class="back-btn" type="button" onclick="showAppPage('labelPrinting')">‹</button>
+              <h1>Parts Inventory</h1>
+            </div>
+            <p class="subtitle">
+              Manage parts inventory from a local Excel table until the database module is ready.
+            </p>
+          </div>
+
+          <div class="workspace">
+            <div class="main-stack">
+              <section class="control-shell">
+                <div class="control-panel">
+                  <div class="control-panel-title">
+                    <div>
+                      <h2>Add Part</h2>
+                      <span>Add a new part into data/parts-inventory.xlsx.</span>
+                    </div>
+                  </div>
+
+                  <div id="partsInventoryMessage" class="excel-message">Loading parts inventory...</div>
+
+                  <div class="excel-field-grid" style="margin-top: 12px;">
+                    <div class="excel-field">
+                      <label for="partNumberInput">Part Number</label>
+                      <input id="partNumberInput" type="text" placeholder="Example: HYD-1001" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partNameInput">Part Name</label>
+                      <input id="partNameInput" type="text" placeholder="Example: Hydraulic Filter" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partCategoryInput">Category</label>
+                      <select id="partCategoryInput">
+                        <option value="Filters">Filters</option>
+                        <option value="Hydraulics">Hydraulics</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Tires">Tires</option>
+                        <option value="Fluids">Fluids</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Attachments">Attachments</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partVendorInput">Vendor</label>
+                      <input id="partVendorInput" type="text" placeholder="Vendor name" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partUnitCostInput">Unit Cost</label>
+                      <input id="partUnitCostInput" type="number" min="0" step="0.01" placeholder="0.00" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partSellPriceInput">Sell Price</label>
+                      <input id="partSellPriceInput" type="number" min="0" step="0.01" placeholder="0.00" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partQuantityInput">Quantity On Hand</label>
+                      <input id="partQuantityInput" type="number" min="0" step="1" placeholder="0" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partReorderPointInput">Reorder Point</label>
+                      <input id="partReorderPointInput" type="number" min="0" step="1" placeholder="0" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partLocationInput">Primary Location</label>
+                      <input id="partLocationInput" type="text" placeholder="Example: A010101" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partBarcodeInput">Barcode 128</label>
+                      <input id="partBarcodeInput" type="text" placeholder="Leave blank to auto-generate" />
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partStatusInput">Status</label>
+                      <select id="partStatusInput">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Discontinued">Discontinued</option>
+                      </select>
+                    </div>
+
+                    <div class="excel-field">
+                      <label for="partDescriptionInput">Description</label>
+                      <input id="partDescriptionInput" type="text" placeholder="Short description" />
+                    </div>
+
+                    <div class="excel-field field-wide">
+                      <label for="partNotesInput">Notes</label>
+                      <input id="partNotesInput" type="text" placeholder="Optional notes" />
+                    </div>
+                  </div>
+
+                  <div class="excel-actions-row" style="margin-top: 14px;">
+                    <button class="primary" type="button" onclick="addPartsInventoryRow()">Add Part</button>
+                    <button class="secondary" type="button" onclick="clearPartsInventoryForm()">Clear Form</button>
+                    <button class="secondary" type="button" onclick="loadPartsInventoryRows()">Refresh Table</button>
+                  </div>
+                </div>
+
+                <div class="control-panel">
+                  <div class="control-panel-title">
+                    <div>
+                      <h2>Inventory Filters</h2>
+                      <span>Filter the saved Excel inventory rows.</span>
+                    </div>
+                  </div>
+
+                  <div class="format-grid">
+                    <div class="field field-wide">
+                      <label for="partsInventorySearch">Search</label>
+                      <input id="partsInventorySearch" type="text" placeholder="Search part number, name, vendor, location..." oninput="renderPartsInventoryTable()" />
+                    </div>
+
+                    <div class="field">
+                      <label for="partsInventoryStatusFilter">Status</label>
+                      <select id="partsInventoryStatusFilter" onchange="renderPartsInventoryTable()">
+                        <option value="">All statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Discontinued">Discontinued</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label for="partsInventoryCategoryFilter">Category</label>
+                      <select id="partsInventoryCategoryFilter" onchange="renderPartsInventoryTable()">
+                        <option value="">All categories</option>
+                        <option value="Filters">Filters</option>
+                        <option value="Hydraulics">Hydraulics</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Tires">Tires</option>
+                        <option value="Fluids">Fluids</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Attachments">Attachments</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="summary-row">
+                    <span>Excel Source</span>
+                    <strong>data/parts-inventory.xlsx</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span>Barcode 128</span>
+                    <strong>Auto if blank</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span>Part ID</span>
+                    <strong>Auto-generated</strong>
+                  </div>
+                </div>
+              </section>
+
+              <section class="inventory-overview-grid">
+                <article class="inventory-card">
+                  <div id="partsTotalCount" class="inventory-stat">0</div>
+                  <h2>Total Parts</h2>
+                  <p>All saved part master rows.</p>
+                </article>
+
+                <article class="inventory-card">
+                  <div id="partsLowStockCount" class="inventory-stat">0</div>
+                  <h2>Low Stock</h2>
+                  <p>Quantity is at or below reorder point.</p>
+                </article>
+
+                <article class="inventory-card">
+                  <div id="partsOutOfStockCount" class="inventory-stat">0</div>
+                  <h2>Out of Stock</h2>
+                  <p>Quantity on hand is zero.</p>
+                </article>
+              </section>
+
+              <section class="excel-data-card">
+                <div class="excel-data-header">
+                  <div>
+                    <h2>Parts Inventory Table</h2>
+                    <p>Review, search, edit, and delete rows saved in the local parts inventory Excel table.</p>
+                  </div>
+                  <span class="pill">Writes to data/parts-inventory.xlsx</span>
+                </div>
+
+                <div class="saved-table-card">
+                  <div class="saved-table-header">
+                    <div>
+                      <h3>Saved Parts Preview</h3>
+                      <p>Select one row to edit, or one or more rows to delete.</p>
+                    </div>
+                    <div class="saved-table-tools">
+                      <button class="secondary" type="button" onclick="downloadPartsImportTemplate()">
+                        Download Import Template
+                      </button>
+                      <button class="secondary" type="button" onclick="openBulkPartsModal()">
+                        Add Bulk Parts
+                      </button>
+                      <button id="editSelectedPartButton" class="orange" type="button" onclick="openEditSelectedPartModal()" disabled>
+                        Edit Selected Row
+                      </button>
+                      <button id="deleteSelectedPartsButton" class="danger" type="button" onclick="deleteSelectedPartsInventoryRows()" disabled>
+                        Delete Selected Rows
+                      </button>
+                      <button class="secondary" type="button" onclick="loadPartsInventoryRows()">Refresh Table</button>
+                    </div>
+                  </div>
+
+                  <div id="partsTableSummary" class="saved-table-summary">Loading saved parts...</div>
+
+                  <div class="saved-table-wrap">
+                    <table class="saved-excel-table">
+                      <thead id="partsInventoryTableHead"></thead>
+                      <tbody id="partsInventoryTableBody">
+                        <tr>
+                          <td>Loading saved parts...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <aside class="side-panel">
+              <section class="timeline-card">
+                <h3>Inventory Workflow</h3>
+
+                <div class="timeline">
+                  <div class="timeline-item done">
+                    <div class="timeline-dot">✓</div>
+                    <div>
+                      <div class="timeline-title">Create Parts Table</div>
+                      <div class="timeline-subtitle">Use Excel as the temporary parts master table</div>
+                    </div>
+                  </div>
+
+                  <div class="timeline-item done">
+                    <div class="timeline-dot">✓</div>
+                    <div>
+                      <div class="timeline-title">Add / Edit / Delete</div>
+                      <div class="timeline-subtitle">Manage saved parts from the localhost page</div>
+                    </div>
+                  </div>
+
+                  <div class="timeline-item">
+                    <div class="timeline-dot">3</div>
+                    <div>
+                      <div class="timeline-title">Stock Transactions</div>
+                      <div class="timeline-subtitle">Next step: stock in, stock out, adjustments, and audit trail</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="summary-card">
+                <h3>Quick Notes</h3>
+
+                <div class="summary-row">
+                  <span>Workbook</span>
+                  <strong>parts-inventory.xlsx</strong>
+                </div>
+
+                <div class="summary-row">
+                  <span>Sheet</span>
+                  <strong>Parts</strong>
+                </div>
+
+                <div class="summary-row">
+                  <span>Status Values</span>
+                  <strong>Active / Inactive / Discontinued</strong>
+                </div>
+
+                <div class="summary-row">
+                  <span>Next Build</span>
+                  <strong>Inventory Transactions</strong>
+                </div>
+              </section>
+
+              <section class="summary-card">
+                <h3>Inventory Value</h3>
+                <div class="summary-row">
+                  <span>Total Value</span>
+                  <strong id="partsInventoryValue">$0.00</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Visible Rows</span>
+                  <strong id="partsVisibleCount">0</strong>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -1832,6 +2239,105 @@
       <h2 id="printerModalTitle">Checking Printer</h2>
       <p id="printerModalDescription">Checking printer connection...</p>
       <div id="printerModalActions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <div id="editRowModal" class="modal-backdrop" aria-hidden="true">
+    <div class="edit-row-modal" role="dialog" aria-modal="true" aria-labelledby="editRowTitle">
+      <div class="edit-row-modal-header">
+        <div>
+          <h2 id="editRowTitle">Edit Selected Row</h2>
+          <p id="editRowDescription">Update the selected saved Excel row. Generated fields stay protected.</p>
+        </div>
+
+        <button class="secondary edit-close-button" type="button" onclick="closeEditRowModal()">×</button>
+      </div>
+
+      <div id="editRowMessage" class="edit-row-message">Select one saved row to edit.</div>
+
+      <div id="editRowFields" class="excel-field-grid" style="margin-top: 14px;">
+        <div class="excel-empty-state">Select one saved row to edit.</div>
+      </div>
+
+      <div class="bulk-toolbar">
+        <div></div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="secondary" type="button" onclick="closeEditRowModal()">Cancel</button>
+          <button class="orange" type="button" onclick="saveEditedSelectedRow()">Save Row Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="partsEditModal" class="modal-backdrop" aria-hidden="true">
+    <div class="edit-row-modal" role="dialog" aria-modal="true" aria-labelledby="partsEditTitle">
+      <div class="edit-row-modal-header">
+        <div>
+          <h2 id="partsEditTitle">Edit Selected Part</h2>
+          <p id="partsEditDescription">Update the selected parts inventory row. Part ID and generated dates are protected.</p>
+        </div>
+
+        <button class="secondary edit-close-button" type="button" onclick="closePartsEditModal()">×</button>
+      </div>
+
+      <div id="partsEditMessage" class="edit-row-message">Select one saved part to edit.</div>
+
+      <div id="partsEditFields" class="excel-field-grid" style="margin-top: 14px;">
+        <div class="excel-empty-state">Select one saved part to edit.</div>
+      </div>
+
+      <div class="bulk-toolbar">
+        <div></div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="secondary" type="button" onclick="closePartsEditModal()">Cancel</button>
+          <button class="orange" type="button" onclick="saveEditedPartRow()">Save Part Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bulkPartsModal" class="modal-backdrop" aria-hidden="true">
+    <div class="bulk-modal" role="dialog" aria-modal="true" aria-labelledby="bulkPartsTitle">
+      <div class="bulk-modal-header">
+        <div>
+          <h2 id="bulkPartsTitle">Add Bulk Parts</h2>
+          <p id="bulkPartsDescription">
+            Paste rows copied from Excel. Expected columns: Part Number, Part Name, Description, Category, Vendor, Unit Cost, Sell Price, Quantity On Hand, Reorder Point, Primary Location, Barcode 128, Status, Notes. Header rows from the import template are ignored automatically.
+          </p>
+        </div>
+
+        <button class="secondary bulk-close-button" type="button" onclick="closeBulkPartsModal()">×</button>
+      </div>
+
+      <div class="field">
+        <label for="bulkPartsPasteBox">Paste part rows</label>
+        <textarea
+          id="bulkPartsPasteBox"
+          class="bulk-paste-box"
+          placeholder="Paste rows copied from Excel here..."
+          oninput="parseBulkPartsPasteData()"
+        ></textarea>
+      </div>
+
+      <div class="bulk-toolbar">
+        <div id="bulkPartsMessage" class="bulk-message">Paste rows to preview them before upload.</div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="secondary" type="button" onclick="clearBulkPartsPaste()">Clear Paste</button>
+          <button class="primary" type="button" onclick="uploadBulkParts()">Upload Parts</button>
+        </div>
+      </div>
+
+      <div class="bulk-preview-wrap">
+        <table class="bulk-preview-table">
+          <thead id="bulkPartsPreviewHead"></thead>
+          <tbody id="bulkPartsPreviewBody">
+            <tr>
+              <td>Paste data to preview rows.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1881,6 +2387,37 @@
   </div>
 
   <script>
+    function showAppPage(pageName) {
+      const labelPage = document.getElementById("labelPrintingPage");
+      const partsPage = document.getElementById("partsInventoryPage");
+      const labelNav = document.getElementById("labelPrintingNav");
+      const partsNav = document.getElementById("partsInventoryNav");
+
+      const showingPartsInventory = pageName === "partsInventory";
+
+      if (labelPage) {
+        labelPage.classList.toggle("hidden", showingPartsInventory);
+      }
+
+      if (partsPage) {
+        partsPage.classList.toggle("hidden", !showingPartsInventory);
+      }
+
+      if (labelNav) {
+        labelNav.classList.toggle("active", !showingPartsInventory);
+      }
+
+      if (partsNav) {
+        partsNav.classList.toggle("active", showingPartsInventory);
+      }
+
+      if (showingPartsInventory) {
+        loadPartsInventoryRows();
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     let uniquePreviewOnly = true;
     let currentExcelColumns = [];
     let currentBulkColumns = [];
@@ -1888,6 +2425,12 @@
     let savedExcelRows = [];
     let savedExcelColumns = [];
     let selectedSavedExcelRowNumbers = new Set();
+    let editingExcelRowNumber = null;
+    let partsInventoryRows = [];
+    let partsInventoryColumns = [];
+    let selectedPartsInventoryRowNumbers = new Set();
+    let editingPartsInventoryRowNumber = null;
+    let parsedBulkPartsRows = [];
     let lastPrinterConnected = false;
 
     const workflowSteps = {
@@ -2350,6 +2893,15 @@
         }
       });
 
+      currentBulkColumns.forEach((column) => {
+        const value = getRowValueByColumn(row, column);
+        const error = getFieldConstraintError(type, column, value);
+
+        if (error) {
+          issues.push(error);
+        }
+      });
+
       return issues;
     }
 
@@ -2392,6 +2944,152 @@
       `;
     }
 
+    function isUnitNumberColumn(column) {
+      return normalizeExcelColumnName(column) === "unit number";
+    }
+
+    function isUnitTypeColumn(column) {
+      return normalizeExcelColumnName(column) === "unit type";
+    }
+
+    function isBayLevelBinColumn(column) {
+      const cleanColumn = normalizeExcelColumnName(column);
+      return cleanColumn === "bay" || cleanColumn === "level" || cleanColumn === "bin";
+    }
+
+    function parseEquipmentUnitNumber(value) {
+      const cleanedValue = String(value ?? "").trim().toUpperCase();
+      const match = cleanedValue.match(/^AR\s*(\d{1,4})$/);
+
+      if (!match) {
+        return null;
+      }
+
+      const numberValue = Number(match[1]);
+
+      if (!Number.isInteger(numberValue) || numberValue < 1 || numberValue > 9999) {
+        return null;
+      }
+
+      return `AR ${String(numberValue).padStart(4, "0")}`;
+    }
+
+    function getFieldConstraintError(type, column, value) {
+      const trimmedValue = String(value ?? "").trim();
+
+      if (type === "equipment" && isUnitNumberColumn(column) && trimmedValue) {
+        if (!parseEquipmentUnitNumber(trimmedValue)) {
+          return "Unit Number must be between AR 0001 and AR 9999.";
+        }
+      }
+
+      if (type === "equipment" && isUnitTypeColumn(column) && trimmedValue) {
+        const allowedUnitTypes = ["Sales", "Rental", "General"];
+        const isAllowed = allowedUnitTypes.some((unitType) => {
+          return unitType.toLowerCase() === trimmedValue.toLowerCase();
+        });
+
+        if (!isAllowed) {
+          return "Unit Type must be Sales, Rental, or General.";
+        }
+      }
+
+      if (type === "location" && isBayLevelBinColumn(column) && trimmedValue) {
+        const numberValue = Number(trimmedValue);
+
+        if (!Number.isInteger(numberValue) || numberValue < 0 || numberValue > 99) {
+          return `${formatExcelColumnLabel(column)} must be a whole number from 0 to 99.`;
+        }
+      }
+
+      return "";
+    }
+
+    function normalizeClientFieldValue(type, column, value) {
+      if (type === "equipment" && isUnitNumberColumn(column)) {
+        return parseEquipmentUnitNumber(value) || String(value ?? "").trim().toUpperCase();
+      }
+
+      if (type === "equipment" && isUnitTypeColumn(column)) {
+        const trimmedValue = String(value ?? "").trim();
+        const allowedUnitTypes = ["Sales", "Rental", "General"];
+        const match = allowedUnitTypes.find((unitType) => {
+          return unitType.toLowerCase() === trimmedValue.toLowerCase();
+        });
+
+        return match || trimmedValue;
+      }
+
+      return value;
+    }
+
+    function createExcelFieldControl(type, column, value = "", options = {}) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "excel-field";
+
+      const label = document.createElement("label");
+      const inputId = `${options.idPrefix || "excelField"}_${options.index || 0}`;
+      label.setAttribute("for", inputId);
+      label.textContent = formatExcelColumnLabel(column);
+
+      let input;
+
+      if (type === "equipment" && isUnitTypeColumn(column)) {
+        input = document.createElement("select");
+        input.id = inputId;
+
+        const blankOption = document.createElement("option");
+        blankOption.value = "";
+        blankOption.textContent = "Select Unit Type";
+        input.appendChild(blankOption);
+
+        ["Sales", "Rental", "General"].forEach((unitType) => {
+          const option = document.createElement("option");
+          option.value = unitType;
+          option.textContent = unitType;
+          input.appendChild(option);
+        });
+      } else {
+        input = document.createElement("input");
+        input.id = inputId;
+        input.type = getExcelInputType(column);
+        input.placeholder = `Enter ${formatExcelColumnLabel(column)}`;
+
+        if (input.type === "number") {
+          input.min = "0";
+          input.step = "1";
+        }
+      }
+
+      if (options.editMode) {
+        input.dataset.editExcelColumn = column;
+      } else {
+        input.dataset.excelColumn = column;
+      }
+
+      if (type === "equipment" && isUnitNumberColumn(column)) {
+        input.placeholder = "AR 0001 - AR 9999";
+        input.maxLength = 7;
+        input.title = "Unit Number must be between AR 0001 and AR 9999.";
+      }
+
+      if (type === "location" && isBayLevelBinColumn(column)) {
+        input.min = "0";
+        input.max = "99";
+        input.step = "1";
+        input.title = `${formatExcelColumnLabel(column)} must be a whole number from 0 to 99.`;
+      }
+
+      input.value = normalizeClientFieldValue(type, column, value);
+
+      configureExcelInputForColumn(type, column, input);
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+
+      return wrapper;
+    }
+
     function configureExcelInputForColumn(type, column, input) {
       if (isFixedCompanyColumn(type, column)) {
         input.value = FIXED_COMPANY_NAME;
@@ -2423,6 +3121,20 @@
       }
 
       return "text";
+    }
+
+    function validateExcelInputCollection(type, inputs) {
+      for (const input of inputs) {
+        const column = input.dataset.excelColumn || input.dataset.editExcelColumn;
+        const error = getFieldConstraintError(type, column, input.value);
+
+        if (error) {
+          input.focus();
+          return error;
+        }
+      }
+
+      return "";
     }
 
     function clearExcelDataFields() {
@@ -2488,30 +3200,12 @@
         }
 
         currentExcelColumns.forEach((column, index) => {
-          const wrapper = document.createElement("div");
-          wrapper.className = "excel-field";
-
-          const label = document.createElement("label");
-          const inputId = `excelField_${index}`;
-          label.setAttribute("for", inputId);
-          label.textContent = formatExcelColumnLabel(column);
-
-          const input = document.createElement("input");
-          input.id = inputId;
-          input.type = getExcelInputType(column);
-          input.dataset.excelColumn = column;
-          input.placeholder = `Enter ${formatExcelColumnLabel(column)}`;
-
-          if (input.type === "number") {
-            input.min = "0";
-            input.step = "1";
-          }
-
-          configureExcelInputForColumn(type, column, input);
-
-          wrapper.appendChild(label);
-          wrapper.appendChild(input);
-          fields.appendChild(wrapper);
+          fields.appendChild(
+            createExcelFieldControl(type, column, "", {
+              idPrefix: "excelField",
+              index,
+            })
+          );
         });
 
         const hiddenGeneratedCount = allColumns.length - currentExcelColumns.length;
@@ -2548,6 +3242,13 @@
 
       if (!inputs.length) {
         setExcelDataMessage("Load Excel columns before adding a row.", "error");
+        return;
+      }
+
+      const validationError = validateExcelInputCollection(type, inputs);
+
+      if (validationError) {
+        setExcelDataMessage(validationError, "error");
         return;
       }
 
@@ -2825,18 +3526,24 @@
       });
     }
 
-    function updateSavedTableDeleteButton() {
-      const button = document.getElementById("deleteSelectedRowsButton");
+    function updateSavedTableActionButtons() {
+      const deleteButton = document.getElementById("deleteSelectedRowsButton");
+      const editButton = document.getElementById("editSelectedRowButton");
+      const selectedCount = selectedSavedExcelRowNumbers.size;
 
-      if (!button) {
-        return;
+      if (deleteButton) {
+        deleteButton.disabled = selectedCount === 0;
+        deleteButton.textContent = selectedCount
+          ? `Delete Selected Rows (${selectedCount})`
+          : "Delete Selected Rows";
       }
 
-      const selectedCount = selectedSavedExcelRowNumbers.size;
-      button.disabled = selectedCount === 0;
-      button.textContent = selectedCount
-        ? `Delete Selected Rows (${selectedCount})`
-        : "Delete Selected Rows";
+      if (editButton) {
+        editButton.disabled = selectedCount !== 1;
+        editButton.textContent = selectedCount === 1
+          ? "Edit Selected Row"
+          : "Edit Selected Row";
+      }
     }
 
     function toggleSavedRowSelection(excelRowNumber, checked) {
@@ -2869,6 +3576,138 @@
       });
 
       renderSavedExcelTable();
+    }
+
+    function setEditRowMessage(message, type = "") {
+      const messageEl = document.getElementById("editRowMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "edit-row-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function getSavedRowByExcelNumber(excelRowNumber) {
+      const safeRowNumber = Number(excelRowNumber);
+
+      return savedExcelRows.find((row, index) => {
+        return getSavedRowExcelNumber(row, index) === safeRowNumber;
+      });
+    }
+
+    function closeEditRowModal() {
+      const modal = document.getElementById("editRowModal");
+
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      editingExcelRowNumber = null;
+    }
+
+    function openEditSelectedRowModal() {
+      const selectedRows = Array.from(selectedSavedExcelRowNumbers);
+
+      if (selectedRows.length !== 1) {
+        setExcelDataMessage("Select exactly one saved row to edit.", "error");
+        return;
+      }
+
+      const type = getSelectedExcelDataType();
+      const excelRowNumber = Number(selectedRows[0]);
+      const row = getSavedRowByExcelNumber(excelRowNumber);
+      const fields = document.getElementById("editRowFields");
+      const modal = document.getElementById("editRowModal");
+
+      if (!row || !fields || !modal) {
+        setExcelDataMessage("Unable to find the selected row for editing.", "error");
+        return;
+      }
+
+      editingExcelRowNumber = excelRowNumber;
+      document.getElementById("editRowTitle").textContent = `Edit Selected ${type} Row`;
+      document.getElementById("editRowDescription").textContent =
+        `Editing Excel row ${excelRowNumber}. Generated Barcode and Company Name fields stay protected.`;
+
+      fields.innerHTML = "";
+
+      if (!currentExcelColumns.length) {
+        fields.innerHTML = '<div class="excel-empty-state">No editable columns were found for this sheet.</div>';
+      } else {
+        currentExcelColumns.forEach((column, index) => {
+          fields.appendChild(
+            createExcelFieldControl(type, column, getRowValueByColumn(row, column), {
+              idPrefix: "editExcelField",
+              index,
+              editMode: true,
+            })
+          );
+        });
+      }
+
+      setEditRowMessage("Update the fields, then save the row changes.", "");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    async function saveEditedSelectedRow() {
+      const type = getSelectedExcelDataType();
+      const inputs = document.querySelectorAll("[data-edit-excel-column]");
+
+      if (!editingExcelRowNumber || !inputs.length) {
+        setEditRowMessage("Select one saved row to edit.", "error");
+        return;
+      }
+
+      const validationError = validateExcelInputCollection(type, inputs);
+
+      if (validationError) {
+        setEditRowMessage(validationError, "error");
+        return;
+      }
+
+      const row = {};
+
+      inputs.forEach((input) => {
+        const column = input.dataset.editExcelColumn;
+        row[column] = normalizeClientFieldValue(type, column, input.value);
+      });
+
+      setEditRowMessage("Saving row changes...", "");
+      setExcelDataMessage("Saving selected row changes...", "");
+      setOutput(`Saving changes to ${type} Excel row ${editingExcelRowNumber}...`);
+
+      try {
+        const data = await requestJson(`/api/excel/update-row/${type}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            excelRowNumber: editingExcelRowNumber,
+            row,
+          }),
+        });
+
+        setEditRowMessage("Row updated successfully.", "success");
+        setExcelDataMessage("Selected row updated successfully. Preview or print again to use the latest data.", "success");
+        setOutput(data);
+
+        closeEditRowModal();
+        await loadSavedExcelTableRows(type);
+      } catch (error) {
+        setEditRowMessage(error.message || "Failed to update selected row.", "error");
+        setExcelDataMessage(error.message || "Failed to update selected row.", "error");
+        setOutput(error.message || "Failed to update selected row.");
+      }
     }
 
     async function deleteSelectedSavedExcelRows() {
@@ -2944,7 +3783,7 @@
 
       if (!savedExcelRows.length) {
         selectedSavedExcelRowNumbers = new Set();
-        updateSavedTableDeleteButton();
+        updateSavedTableActionButtons();
         head.innerHTML = "";
         summary.textContent = `No saved ${type} rows found.`;
         body.innerHTML = `
@@ -2982,7 +3821,7 @@
       `;
 
       if (!filteredRows.length) {
-        updateSavedTableDeleteButton();
+        updateSavedTableActionButtons();
         body.innerHTML = `
           <tr>
             <td colspan="${savedExcelColumns.length + 2}">No saved rows match the current search.</td>
@@ -3018,7 +3857,7 @@
         })
         .join("");
 
-      updateSavedTableDeleteButton();
+      updateSavedTableActionButtons();
     }
 
     function setBulkLabelsMessage(message, type = "") {
@@ -3315,6 +4154,913 @@
         );
 
         setOutput(error.message || "Bulk upload failed.");
+      }
+    }
+
+
+
+    const PARTS_FORM_FIELDS = [
+      { id: "partNumberInput", column: "Part Number" },
+      { id: "partNameInput", column: "Part Name" },
+      { id: "partDescriptionInput", column: "Description" },
+      { id: "partCategoryInput", column: "Category" },
+      { id: "partVendorInput", column: "Vendor" },
+      { id: "partUnitCostInput", column: "Unit Cost" },
+      { id: "partSellPriceInput", column: "Sell Price" },
+      { id: "partQuantityInput", column: "Quantity On Hand" },
+      { id: "partReorderPointInput", column: "Reorder Point" },
+      { id: "partLocationInput", column: "Primary Location" },
+      { id: "partBarcodeInput", column: "Barcode 128" },
+      { id: "partStatusInput", column: "Status" },
+      { id: "partNotesInput", column: "Notes" },
+    ];
+
+    const PARTS_EDITABLE_COLUMNS = [
+      "Part Number",
+      "Part Name",
+      "Description",
+      "Category",
+      "Vendor",
+      "Unit Cost",
+      "Sell Price",
+      "Quantity On Hand",
+      "Reorder Point",
+      "Primary Location",
+      "Barcode 128",
+      "Status",
+      "Notes",
+    ];
+
+    function setPartsInventoryMessage(message, type = "") {
+      const messageEl = document.getElementById("partsInventoryMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "excel-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function setPartsEditMessage(message, type = "") {
+      const messageEl = document.getElementById("partsEditMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "edit-row-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function getPartsFormRow() {
+      const row = {};
+
+      PARTS_FORM_FIELDS.forEach((field) => {
+        const input = document.getElementById(field.id);
+        row[field.column] = input ? input.value : "";
+      });
+
+      return row;
+    }
+
+    function clearPartsInventoryForm() {
+      PARTS_FORM_FIELDS.forEach((field) => {
+        const input = document.getElementById(field.id);
+
+        if (!input) {
+          return;
+        }
+
+        if (field.column === "Category") {
+          input.value = "Filters";
+        } else if (field.column === "Status") {
+          input.value = "Active";
+        } else {
+          input.value = "";
+        }
+      });
+
+      setPartsInventoryMessage("Form cleared.", "success");
+    }
+
+    async function addPartsInventoryRow() {
+      const row = getPartsFormRow();
+
+      setPartsInventoryMessage("Adding part...", "");
+
+      try {
+        const data = await requestJson("/api/parts/add-row", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ row }),
+        });
+
+        setPartsInventoryMessage("Part added successfully.", "success");
+        clearPartsInventoryForm();
+        await loadPartsInventoryRows();
+        setOutput(data);
+      } catch (error) {
+        setPartsInventoryMessage(error.message || "Failed to add part.", "error");
+        setOutput(error.message || "Failed to add part.");
+      }
+    }
+
+    async function loadPartsInventoryRows() {
+      const summary = document.getElementById("partsTableSummary");
+      const head = document.getElementById("partsInventoryTableHead");
+      const body = document.getElementById("partsInventoryTableBody");
+
+      if (summary) {
+        summary.textContent = "Loading saved parts...";
+      }
+
+      try {
+        const data = await requestJson("/api/parts/rows");
+        partsInventoryRows = Array.isArray(data.rows) ? data.rows : [];
+        partsInventoryColumns = Array.isArray(data.columns) ? data.columns : [];
+        selectedPartsInventoryRowNumbers = new Set();
+        renderPartsInventoryTable();
+        setPartsInventoryMessage(`Loaded ${partsInventoryRows.length} saved part row(s).`, "success");
+      } catch (error) {
+        partsInventoryRows = [];
+        partsInventoryColumns = [];
+        selectedPartsInventoryRowNumbers = new Set();
+
+        if (summary) {
+          summary.textContent = error.message || "Unable to load saved parts.";
+        }
+
+        if (head) {
+          head.innerHTML = "";
+        }
+
+        if (body) {
+          body.innerHTML = `
+            <tr>
+              <td>${escapeHtml(error.message || "Unable to load saved parts.")}</td>
+            </tr>
+          `;
+        }
+
+        setPartsInventoryMessage(error.message || "Unable to load saved parts.", "error");
+      }
+    }
+
+    function getPartsRowExcelNumber(row, fallbackIndex) {
+      const rowNumber = Number(row?.__excelRowNumber);
+
+      if (Number.isInteger(rowNumber) && rowNumber >= 2) {
+        return rowNumber;
+      }
+
+      return fallbackIndex + 2;
+    }
+
+    function getFilteredPartsInventoryRows() {
+      const searchText = String(document.getElementById("partsInventorySearch")?.value || "")
+        .trim()
+        .toLowerCase();
+      const statusFilter = String(document.getElementById("partsInventoryStatusFilter")?.value || "").trim();
+      const categoryFilter = String(document.getElementById("partsInventoryCategoryFilter")?.value || "").trim();
+
+      return partsInventoryRows.filter((row) => {
+        if (statusFilter && String(row.Status || "") !== statusFilter) {
+          return false;
+        }
+
+        if (categoryFilter && String(row.Category || "") !== categoryFilter) {
+          return false;
+        }
+
+        if (!searchText) {
+          return true;
+        }
+
+        return Object.entries(row || {}).some(([key, value]) => {
+          if (key === "__excelRowNumber") {
+            return false;
+          }
+
+          return String(value ?? "").toLowerCase().includes(searchText);
+        });
+      });
+    }
+
+    function formatCurrency(value) {
+      const numericValue = Number(value);
+
+      if (!Number.isFinite(numericValue)) {
+        return "$0.00";
+      }
+
+      return numericValue.toLocaleString(undefined, {
+        style: "currency",
+        currency: "USD",
+      });
+    }
+
+    function updatePartsInventorySummary(filteredRows) {
+      const rows = Array.isArray(partsInventoryRows) ? partsInventoryRows : [];
+      const visibleRows = Array.isArray(filteredRows) ? filteredRows : getFilteredPartsInventoryRows();
+
+      const lowStockCount = rows.filter((row) => {
+        const qty = Number(row["Quantity On Hand"] || 0);
+        const reorderPoint = Number(row["Reorder Point"] || 0);
+        return reorderPoint > 0 && qty <= reorderPoint;
+      }).length;
+
+      const outOfStockCount = rows.filter((row) => Number(row["Quantity On Hand"] || 0) <= 0).length;
+      const inventoryValue = rows.reduce((total, row) => {
+        const qty = Number(row["Quantity On Hand"] || 0);
+        const cost = Number(row["Unit Cost"] || 0);
+        return total + qty * cost;
+      }, 0);
+
+      const totalEl = document.getElementById("partsTotalCount");
+      const lowEl = document.getElementById("partsLowStockCount");
+      const outEl = document.getElementById("partsOutOfStockCount");
+      const valueEl = document.getElementById("partsInventoryValue");
+      const visibleEl = document.getElementById("partsVisibleCount");
+
+      if (totalEl) totalEl.textContent = String(rows.length);
+      if (lowEl) lowEl.textContent = String(lowStockCount);
+      if (outEl) outEl.textContent = String(outOfStockCount);
+      if (valueEl) valueEl.textContent = formatCurrency(inventoryValue);
+      if (visibleEl) visibleEl.textContent = String(visibleRows.length);
+    }
+
+    function updatePartsInventoryActionButtons() {
+      const editButton = document.getElementById("editSelectedPartButton");
+      const deleteButton = document.getElementById("deleteSelectedPartsButton");
+      const selectedCount = selectedPartsInventoryRowNumbers.size;
+
+      if (editButton) {
+        editButton.disabled = selectedCount !== 1;
+      }
+
+      if (deleteButton) {
+        deleteButton.disabled = selectedCount === 0;
+        deleteButton.textContent = selectedCount
+          ? `Delete Selected Rows (${selectedCount})`
+          : "Delete Selected Rows";
+      }
+    }
+
+    function togglePartsInventoryRowSelection(excelRowNumber, checked) {
+      const safeRowNumber = Number(excelRowNumber);
+
+      if (!Number.isInteger(safeRowNumber) || safeRowNumber < 2) {
+        return;
+      }
+
+      if (checked) {
+        selectedPartsInventoryRowNumbers.add(safeRowNumber);
+      } else {
+        selectedPartsInventoryRowNumbers.delete(safeRowNumber);
+      }
+
+      renderPartsInventoryTable();
+    }
+
+    function toggleAllPartsInventoryRows(checked) {
+      const filteredRows = getFilteredPartsInventoryRows();
+
+      filteredRows.forEach((row, index) => {
+        const rowNumber = getPartsRowExcelNumber(row, index);
+
+        if (checked) {
+          selectedPartsInventoryRowNumbers.add(rowNumber);
+        } else {
+          selectedPartsInventoryRowNumbers.delete(rowNumber);
+        }
+      });
+
+      renderPartsInventoryTable();
+    }
+
+    function renderPartsInventoryTable() {
+      const summary = document.getElementById("partsTableSummary");
+      const head = document.getElementById("partsInventoryTableHead");
+      const body = document.getElementById("partsInventoryTableBody");
+
+      if (!summary || !head || !body) {
+        return;
+      }
+
+      const filteredRows = getFilteredPartsInventoryRows();
+      updatePartsInventorySummary(filteredRows);
+
+      if (!partsInventoryRows.length) {
+        selectedPartsInventoryRowNumbers = new Set();
+        updatePartsInventoryActionButtons();
+        head.innerHTML = "";
+        summary.textContent = "No saved parts found. Add your first part above.";
+        body.innerHTML = `
+          <tr>
+            <td>No saved parts found.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      const visibleRowNumbers = filteredRows.map((row, index) => getPartsRowExcelNumber(row, index));
+      const selectedVisibleCount = visibleRowNumbers.filter((rowNumber) => selectedPartsInventoryRowNumbers.has(rowNumber)).length;
+      const allVisibleSelected = visibleRowNumbers.length > 0 && selectedVisibleCount === visibleRowNumbers.length;
+
+      summary.textContent =
+        `Showing ${filteredRows.length} of ${partsInventoryRows.length} saved part row(s). ` +
+        `${selectedPartsInventoryRowNumbers.size} selected.`;
+
+      const columnsToShow = partsInventoryColumns.length
+        ? partsInventoryColumns
+        : ["Part ID", "Part Number", "Part Name", "Category", "Quantity On Hand", "Reorder Point", "Primary Location", "Barcode 128", "Status"];
+
+      head.innerHTML = `
+        <tr>
+          <th class="select-cell">
+            <input
+              type="checkbox"
+              aria-label="Select all visible parts"
+              ${allVisibleSelected ? "checked" : ""}
+              onchange="toggleAllPartsInventoryRows(this.checked)"
+            />
+          </th>
+          <th>Excel Row</th>
+          ${columnsToShow.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}
+        </tr>
+      `;
+
+      if (!filteredRows.length) {
+        updatePartsInventoryActionButtons();
+        body.innerHTML = `
+          <tr>
+            <td colspan="${columnsToShow.length + 2}">No saved parts match the current filters.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      body.innerHTML = filteredRows
+        .map((row, rowIndex) => {
+          const excelRowNumber = getPartsRowExcelNumber(row, rowIndex);
+          const isSelected = selectedPartsInventoryRowNumbers.has(excelRowNumber);
+          const qty = Number(row["Quantity On Hand"] || 0);
+          const reorderPoint = Number(row["Reorder Point"] || 0);
+          const rowClass = isSelected ? "selected-row" : "";
+
+          return `
+            <tr class="${rowClass}">
+              <td class="select-cell">
+                <input
+                  type="checkbox"
+                  aria-label="Select part Excel row ${excelRowNumber}"
+                  ${isSelected ? "checked" : ""}
+                  onchange="togglePartsInventoryRowSelection(${excelRowNumber}, this.checked)"
+                />
+              </td>
+              <td>${excelRowNumber}</td>
+              ${columnsToShow
+                .map((column) => {
+                  let cellClass = "";
+
+                  if (column === "Quantity On Hand" && qty <= 0) {
+                    cellClass = "error-cell";
+                  } else if (column === "Quantity On Hand" && reorderPoint > 0 && qty <= reorderPoint) {
+                    cellClass = "warning-cell";
+                  } else if (["Part ID", "Barcode 128", "Date Created", "Last Updated"].includes(column)) {
+                    cellClass = "generated-cell";
+                  }
+
+                  return `<td class="${cellClass}">${escapeHtml(row[column] ?? "")}</td>`;
+                })
+                .join("")}
+            </tr>
+          `;
+        })
+        .join("");
+
+      updatePartsInventoryActionButtons();
+    }
+
+    function closePartsEditModal() {
+      const modal = document.getElementById("partsEditModal");
+
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      editingPartsInventoryRowNumber = null;
+    }
+
+    function getSelectedPartsInventoryRow() {
+      const selectedRows = Array.from(selectedPartsInventoryRowNumbers);
+
+      if (selectedRows.length !== 1) {
+        return null;
+      }
+
+      const selectedExcelRowNumber = selectedRows[0];
+
+      return partsInventoryRows.find((row, index) => {
+        return getPartsRowExcelNumber(row, index) === selectedExcelRowNumber;
+      }) || null;
+    }
+
+    function createPartsEditInput(column, value, index) {
+      const wrapper = document.createElement("div");
+      wrapper.className = column === "Description" || column === "Notes" ? "excel-field field-wide" : "excel-field";
+
+      const label = document.createElement("label");
+      const inputId = `partsEditField_${index}`;
+      label.setAttribute("for", inputId);
+      label.textContent = column;
+
+      let input;
+
+      if (column === "Category") {
+        input = document.createElement("select");
+        ["Filters", "Hydraulics", "Electrical", "Tires", "Fluids", "Hardware", "Attachments", "Other"].forEach((optionValue) => {
+          const option = document.createElement("option");
+          option.value = optionValue;
+          option.textContent = optionValue;
+          input.appendChild(option);
+        });
+      } else if (column === "Status") {
+        input = document.createElement("select");
+        ["Active", "Inactive", "Discontinued"].forEach((optionValue) => {
+          const option = document.createElement("option");
+          option.value = optionValue;
+          option.textContent = optionValue;
+          input.appendChild(option);
+        });
+      } else {
+        input = document.createElement("input");
+        input.type = ["Unit Cost", "Sell Price"].includes(column) ? "number" : "text";
+
+        if (["Quantity On Hand", "Reorder Point"].includes(column)) {
+          input.type = "number";
+          input.step = "1";
+        }
+
+        if (["Unit Cost", "Sell Price"].includes(column)) {
+          input.step = "0.01";
+        }
+
+        if (["Unit Cost", "Sell Price", "Quantity On Hand", "Reorder Point"].includes(column)) {
+          input.min = "0";
+        }
+      }
+
+      input.id = inputId;
+      input.dataset.partsColumn = column;
+      input.value = value ?? "";
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+
+      return wrapper;
+    }
+
+    function openEditSelectedPartModal() {
+      const selectedRow = getSelectedPartsInventoryRow();
+      const fields = document.getElementById("partsEditFields");
+      const modal = document.getElementById("partsEditModal");
+
+      if (!selectedRow || !fields || !modal) {
+        setPartsInventoryMessage("Select exactly one saved part row to edit.", "error");
+        return;
+      }
+
+      editingPartsInventoryRowNumber = Array.from(selectedPartsInventoryRowNumbers)[0];
+      fields.innerHTML = "";
+
+      PARTS_EDITABLE_COLUMNS.forEach((column, index) => {
+        fields.appendChild(createPartsEditInput(column, selectedRow[column], index));
+      });
+
+      setPartsEditMessage(`Editing Excel row ${editingPartsInventoryRowNumber}.`, "success");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    async function saveEditedPartRow() {
+      if (!editingPartsInventoryRowNumber) {
+        setPartsEditMessage("No selected part row is open for editing.", "error");
+        return;
+      }
+
+      const row = {};
+      const inputs = document.querySelectorAll("[data-parts-column]");
+
+      inputs.forEach((input) => {
+        row[input.dataset.partsColumn] = input.value;
+      });
+
+      setPartsEditMessage("Saving part changes...", "");
+
+      try {
+        const data = await requestJson("/api/parts/update-row", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            excelRowNumber: editingPartsInventoryRowNumber,
+            row,
+          }),
+        });
+
+        setPartsEditMessage("Part row updated successfully.", "success");
+        setPartsInventoryMessage("Part row updated successfully.", "success");
+        closePartsEditModal();
+        await loadPartsInventoryRows();
+        setOutput(data);
+      } catch (error) {
+        setPartsEditMessage(error.message || "Failed to update part row.", "error");
+        setOutput(error.message || "Failed to update part row.");
+      }
+    }
+
+    async function deleteSelectedPartsInventoryRows() {
+      const selectedRows = Array.from(selectedPartsInventoryRowNumbers).sort((a, b) => a - b);
+
+      if (!selectedRows.length) {
+        setPartsInventoryMessage("Select at least one saved part row to delete.", "error");
+        return;
+      }
+
+      const confirmed = confirm(
+        `Delete ${selectedRows.length} selected part row(s)?\n\n` +
+          `Excel row number(s): ${selectedRows.join(", ")}\n\n` +
+          `A backup copy will be created before the rows are removed.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setPartsInventoryMessage("Deleting selected part rows...", "");
+
+      try {
+        const data = await requestJson("/api/parts/delete-rows", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            excelRowNumbers: selectedRows,
+          }),
+        });
+
+        selectedPartsInventoryRowNumbers = new Set();
+        setPartsInventoryMessage(`Deleted ${data.result.deletedRowCount} selected part row(s).`, "success");
+        await loadPartsInventoryRows();
+        setOutput(data);
+      } catch (error) {
+        setPartsInventoryMessage(error.message || "Failed to delete selected part rows.", "error");
+        setOutput(error.message || "Failed to delete selected part rows.");
+      }
+    }
+
+    const PARTS_BULK_COLUMNS = PARTS_EDITABLE_COLUMNS;
+
+    function setBulkPartsMessage(message, type = "") {
+      const messageEl = document.getElementById("bulkPartsMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "bulk-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+
+    function isPartsBulkHeaderRow(cells) {
+      if (!Array.isArray(cells) || cells.length < 2) {
+        return false;
+      }
+
+      return PARTS_BULK_COLUMNS.every((column, index) => {
+        const pastedValue = String(cells[index] ?? "").trim().toLowerCase();
+        return pastedValue === column.toLowerCase();
+      });
+    }
+
+    function getPartsImportTemplateText() {
+      const headerRow = PARTS_BULK_COLUMNS.join("\t");
+      const exampleRow = [
+        "PART-1001",
+        "Example Hydraulic Filter",
+        "Replace this sample row with copied Excel data",
+        "Filters",
+        "Example Vendor",
+        "12.50",
+        "24.99",
+        "10",
+        "2",
+        "A010101",
+        "",
+        "Active",
+        "Barcode can be left blank to auto-generate",
+      ].join("\t");
+
+      return `${headerRow}\n${exampleRow}\n`;
+    }
+
+    function downloadPartsImportTemplate() {
+      window.location.href = "/api/parts/import-template";
+
+      setPartsInventoryMessage(
+        "Parts import template downloaded. Open it in Excel, replace the sample row, then copy/paste rows into Add Bulk Parts.",
+        "success"
+      );
+    }
+
+    function openBulkPartsModal() {
+      const modal = document.getElementById("bulkPartsModal");
+      const description = document.getElementById("bulkPartsDescription");
+
+      if (description) {
+        description.textContent =
+          `Paste rows copied from Excel. Expected columns: ${PARTS_BULK_COLUMNS.join(", ")}. ` +
+          "Part ID, Date Created, and Last Updated are generated. Barcode 128 is generated if blank. Header rows from the import template are ignored automatically.";
+      }
+
+      clearBulkPartsPaste(false);
+
+      if (modal) {
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+    }
+
+    function closeBulkPartsModal() {
+      const modal = document.getElementById("bulkPartsModal");
+
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function clearBulkPartsPaste(showMessage = true) {
+      const pasteBox = document.getElementById("bulkPartsPasteBox");
+
+      if (pasteBox) {
+        pasteBox.value = "";
+      }
+
+      parsedBulkPartsRows = [];
+      renderBulkPartsPreviewTable();
+
+      if (showMessage) {
+        setBulkPartsMessage("Paste cleared.");
+      } else {
+        setBulkPartsMessage("Paste rows to preview them before upload.");
+      }
+    }
+
+    function parseBulkPartsPasteData() {
+      const pasteBox = document.getElementById("bulkPartsPasteBox");
+      const text = pasteBox ? pasteBox.value : "";
+
+      parsedBulkPartsRows = [];
+
+      const lines = text
+        .split(/\r?\n/)
+        .map((line) => line.trimEnd())
+        .filter((line) => line.trim() !== "");
+
+      lines.forEach((line, lineIndex) => {
+        const cells = splitPastedLine(line);
+
+        if (lineIndex === 0 && isPartsBulkHeaderRow(cells)) {
+          return;
+        }
+
+        const row = {};
+
+        PARTS_BULK_COLUMNS.forEach((column, index) => {
+          row[column] = cells[index] !== undefined ? cells[index].trim() : "";
+        });
+
+        parsedBulkPartsRows.push(row);
+      });
+
+      renderBulkPartsPreviewTable();
+
+      if (!parsedBulkPartsRows.length) {
+        setBulkPartsMessage("Paste rows to preview them before upload.");
+        return;
+      }
+
+      const issueCount = parsedBulkPartsRows.reduce((total, row) => total + getBulkPartRowIssues(row).length, 0);
+
+      if (issueCount) {
+        setBulkPartsMessage(`${parsedBulkPartsRows.length} row(s) parsed. Fix ${issueCount} issue(s) before upload.`, "error");
+        return;
+      }
+
+      setBulkPartsMessage(`${parsedBulkPartsRows.length} row(s) ready to upload.`, "success");
+    }
+
+    function getBulkPartRowIssues(row) {
+      const issues = [];
+      const requiredColumns = ["Part Number", "Part Name"];
+
+      requiredColumns.forEach((column) => {
+        if (String(getRowValueByColumn(row, column) ?? "").trim() === "") {
+          issues.push(`Missing ${column}`);
+        }
+      });
+
+      ["Unit Cost", "Sell Price", "Quantity On Hand", "Reorder Point"].forEach((column) => {
+        const value = String(getRowValueByColumn(row, column) ?? "").trim();
+
+        if (!value) {
+          return;
+        }
+
+        const numericValue = Number(value);
+
+        if (!Number.isFinite(numericValue) || numericValue < 0) {
+          issues.push(`${column} must be 0 or higher`);
+        }
+      });
+
+      const category = String(getRowValueByColumn(row, "Category") ?? "").trim();
+      const status = String(getRowValueByColumn(row, "Status") ?? "").trim();
+      const allowedCategories = ["Filters", "Hydraulics", "Electrical", "Tires", "Fluids", "Hardware", "Attachments", "Other"];
+      const allowedStatuses = ["Active", "Inactive", "Discontinued"];
+
+      if (category && !allowedCategories.some((item) => item.toLowerCase() === category.toLowerCase())) {
+        issues.push("Category must match allowed values");
+      }
+
+      if (status && !allowedStatuses.some((item) => item.toLowerCase() === status.toLowerCase())) {
+        issues.push("Status must be Active, Inactive, or Discontinued");
+      }
+
+      return issues;
+    }
+
+    function buildBulkPartPreviewValue(row, column) {
+      const value = getRowValueByColumn(row, column);
+
+      if (column === "Category" && String(value ?? "").trim() === "") {
+        return "Other";
+      }
+
+      if (column === "Status" && String(value ?? "").trim() === "") {
+        return "Active";
+      }
+
+      if (["Unit Cost", "Sell Price", "Quantity On Hand", "Reorder Point"].includes(column) && String(value ?? "").trim() === "") {
+        return "0";
+      }
+
+      if (column === "Barcode 128" && String(value ?? "").trim() === "") {
+        return "Auto-generate unique barcode";
+      }
+
+      return value;
+    }
+
+    function renderBulkPartsPreviewTable() {
+      const head = document.getElementById("bulkPartsPreviewHead");
+      const body = document.getElementById("bulkPartsPreviewBody");
+
+      if (!head || !body) {
+        return;
+      }
+
+      head.innerHTML = `
+        <tr>
+          <th>#</th>
+          ${PARTS_BULK_COLUMNS.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}
+          <th>Status</th>
+        </tr>
+      `;
+
+      if (!parsedBulkPartsRows.length) {
+        body.innerHTML = `
+          <tr>
+            <td colspan="${PARTS_BULK_COLUMNS.length + 2}">
+              Paste data to preview rows in spreadsheet-style cells.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      body.innerHTML = parsedBulkPartsRows
+        .map((row, rowIndex) => {
+          const issues = getBulkPartRowIssues(row);
+          const statusClass = issues.length ? "row-status-error" : "row-status-ready";
+          const statusText = issues.length ? issues.join("; ") : "Ready";
+
+          return `
+            <tr>
+              <td>${rowIndex + 1}</td>
+              ${PARTS_BULK_COLUMNS
+                .map((column) => {
+                  const rawValue = getRowValueByColumn(row, column);
+                  const value = buildBulkPartPreviewValue(row, column);
+                  let cellClass = "";
+
+                  if (issues.some((issue) => issue.toLowerCase().includes(column.toLowerCase()))) {
+                    cellClass = "error-cell";
+                  } else if (column === "Barcode 128" && !String(rawValue ?? "").trim()) {
+                    cellClass = "generated-cell";
+                  } else if (["Category", "Status", "Unit Cost", "Sell Price", "Quantity On Hand", "Reorder Point"].includes(column) && !String(rawValue ?? "").trim()) {
+                    cellClass = "generated-cell";
+                  }
+
+                  return `<td class="${cellClass}">${escapeHtml(value || "")}</td>`;
+                })
+                .join("")}
+              <td class="${statusClass}">${escapeHtml(statusText)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    async function uploadBulkParts() {
+      if (!parsedBulkPartsRows.length) {
+        setBulkPartsMessage("Paste at least one part row before uploading.", "error");
+        return;
+      }
+
+      const issueCount = parsedBulkPartsRows.reduce((total, row) => total + getBulkPartRowIssues(row).length, 0);
+
+      if (issueCount) {
+        setBulkPartsMessage(`Fix ${issueCount} issue(s) before uploading bulk parts.`, "error");
+        return;
+      }
+
+      const confirmed = confirm(
+        `Upload ${parsedBulkPartsRows.length} pasted part row(s)?\n\n` +
+          "This will append the rows to data/parts-inventory.xlsx. Part ID and blank Barcode 128 values will be generated."
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setBulkPartsMessage("Uploading bulk parts...", "");
+      setPartsInventoryMessage("Uploading bulk parts...", "");
+
+      try {
+        const data = await requestJson("/api/parts/bulk-add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rows: parsedBulkPartsRows,
+          }),
+        });
+
+        setBulkPartsMessage(
+          `Uploaded ${data.result.uploadedRowCount} row(s). Skipped ${data.result.skippedRowCount} row(s).`,
+          "success"
+        );
+        setPartsInventoryMessage(`Bulk upload complete. Uploaded ${data.result.uploadedRowCount} part row(s).`, "success");
+        setOutput(
+          `Bulk parts upload complete.\n` +
+            `Uploaded: ${data.result.uploadedRowCount} row(s)\n` +
+            `Skipped: ${data.result.skippedRowCount} row(s)\n` +
+            `Backup: ${data.result.backupFile || "created"}`
+        );
+
+        await loadPartsInventoryRows();
+        clearBulkPartsPaste(false);
+        closeBulkPartsModal();
+      } catch (error) {
+        setBulkPartsMessage(error.message || "Bulk parts upload failed.", "error");
+        setPartsInventoryMessage(error.message || "Bulk parts upload failed.", "error");
+        setOutput(error.message || "Bulk parts upload failed.");
       }
     }
 

@@ -60,3 +60,4 @@ On Windows PowerShell:
 $env:PRINTER_IP="192.168.1.126"; $env:PRINTER_PORT="9100"; npm start
 ```
 "# Zebra_Barcoding_Function_Test" 
+"# label-printer-localhost-labelary" 
