@@ -2338,6 +2338,858 @@ app.post("/api/parts/delete-rows", (req, res) => {
   }
 });
 
+
+
+const yardInventoryFile = path.join(__dirname, "data", "yard-inventory.xlsx");
+const YARD_SHEET_NAME = "Yard Inventory";
+const YARD_HEADERS = [
+  "Placement ID",
+  "Unit Number",
+  "Serial Number",
+  "Equipment Type",
+  "Make",
+  "Model",
+  "Year",
+  "Area",
+  "Zone",
+  "Row",
+  "Slot",
+  "Display Position",
+  "Availability Status",
+  "Condition Status",
+  "Customer Hold",
+  "Last Moved Date",
+  "Moved By",
+  "Notes",
+  "Date Created",
+  "Last Updated",
+];
+const YARD_AREA_VALUES = [
+  "Yard",
+  "Showroom",
+  "Shop",
+  "Rental Ready",
+  "Sold Staging",
+  "Service Hold",
+  "Wash Bay",
+  "Delivery Staging",
+  "Offsite",
+  "Unknown",
+];
+const YARD_ZONE_VALUES = [
+  "North Yard",
+  "South Yard",
+  "East Yard",
+  "West Yard",
+  "Showroom Floor",
+  "Shop Bay",
+  "Wash Bay",
+  "Delivery Lane",
+  "Rental Line",
+  "Sold Line",
+  "Offsite",
+  "Unknown",
+];
+const YARD_DISPLAY_VALUES = [
+  "Front Row",
+  "Middle Row",
+  "Back Row",
+  "Indoor Display",
+  "Outdoor Display",
+  "Not Displayed",
+];
+const YARD_AVAILABILITY_VALUES = [
+  "Available",
+  "Rental Ready",
+  "Reserved",
+  "On Hold",
+  "Sold",
+  "Out on Rent",
+  "In Service",
+  "Unavailable",
+  "Unknown",
+];
+const YARD_CONDITION_VALUES = [
+  "Ready",
+  "Needs Cleaning",
+  "Needs Service",
+  "Damaged",
+  "Inspection Needed",
+  "Battery Charging",
+  "Fuel Needed",
+  "Parts Needed",
+  "Unknown",
+];
+const YARD_CUSTOMER_HOLD_VALUES = ["No", "Yes"];
+
+function ensureYardInventoryWorkbook() {
+  const dataDir = path.dirname(yardInventoryFile);
+
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, {
+      recursive: true,
+    });
+  }
+
+  if (fs.existsSync(yardInventoryFile)) {
+    return;
+  }
+
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet([YARD_HEADERS]);
+  XLSX.utils.book_append_sheet(workbook, worksheet, YARD_SHEET_NAME);
+  XLSX.writeFile(workbook, yardInventoryFile);
+}
+
+function readYardInventoryWorkbook() {
+  ensureYardInventoryWorkbook();
+
+  const workbook = XLSX.readFile(yardInventoryFile, {
+    cellDates: true,
+    cellNF: false,
+    cellText: false,
+  });
+
+  const sheetName = workbook.SheetNames.includes(YARD_SHEET_NAME)
+    ? YARD_SHEET_NAME
+    : workbook.SheetNames[0];
+
+  if (!sheetName) {
+    throw new Error(`No worksheet found in ${yardInventoryFile}.`);
+  }
+
+  const worksheet = workbook.Sheets[sheetName];
+
+  if (!worksheet) {
+    throw new Error(`Worksheet ${sheetName} could not be read.`);
+  }
+
+  let rowsAsArrays = XLSX.utils.sheet_to_json(worksheet, {
+    header: 1,
+    defval: "",
+    blankrows: false,
+  });
+
+  if (!rowsAsArrays.length) {
+    rowsAsArrays = [YARD_HEADERS];
+  }
+
+  const headerRow = rowsAsArrays[0] || [];
+  let headers = headerRow.map((header) => String(header || "").trimEnd());
+  let changedHeaders = false;
+
+  YARD_HEADERS.forEach((requiredHeader) => {
+    if (!findHeader(headers, requiredHeader)) {
+      headers.push(requiredHeader);
+      changedHeaders = true;
+    }
+  });
+
+  if (changedHeaders) {
+    rowsAsArrays[0] = headers;
+    const rebuiltWorksheet = XLSX.utils.aoa_to_sheet(rowsAsArrays);
+    workbook.Sheets[sheetName] = rebuiltWorksheet;
+    writeWorkbookToDisk(workbook, yardInventoryFile);
+  }
+
+  const usableHeaders = headers.filter((header) => String(header || "").trim() !== "");
+
+  return {
+    filePath: yardInventoryFile,
+    workbook,
+    worksheet: workbook.Sheets[sheetName],
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  };
+}
+
+function getYardRowsAsObjects() {
+  const { worksheet, usableHeaders } = readYardInventoryWorkbook();
+
+  const rows = XLSX.utils.sheet_to_json(worksheet, {
+    defval: "",
+    blankrows: false,
+  }).map((row, index) => ({
+    __excelRowNumber: index + 2,
+    ...row,
+  }));
+
+  return {
+    rows,
+    columns: usableHeaders,
+  };
+}
+
+function normalizeYardChoice(value, allowedValues, fieldName, defaultValue) {
+  const text = String(value ?? "").trim();
+
+  if (!text) {
+    return defaultValue;
+  }
+
+  const match = allowedValues.find((allowedValue) => {
+    return allowedValue.toLowerCase() === text.toLowerCase();
+  });
+
+  if (!match) {
+    throw new Error(`${fieldName} must be one of: ${allowedValues.join(", ")}.`);
+  }
+
+  return match;
+}
+
+function normalizeYardYear(value) {
+  const text = String(value ?? "").trim();
+
+  if (!text) {
+    return "";
+  }
+
+  if (!/^\d{4}$/.test(text)) {
+    throw new Error("Year must be blank or a valid 4-digit year.");
+  }
+
+  return text;
+}
+
+function getYardReservedValues(headers, rowsAsArrays, skipExcelRowNumber = null) {
+  const unitIndex = getHeaderIndex(headers, "Unit Number");
+  const unitNumbers = new Set();
+
+  rowsAsArrays.slice(1).forEach((rowArray, index) => {
+    const excelRowNumber = index + 2;
+
+    if (skipExcelRowNumber && excelRowNumber === skipExcelRowNumber) {
+      return;
+    }
+
+    if (unitIndex >= 0) {
+      const unitNumber = String(rowArray[unitIndex] ?? "").trim().toLowerCase();
+
+      if (unitNumber) {
+        unitNumbers.add(unitNumber);
+      }
+    }
+  });
+
+  return {
+    unitNumbers,
+  };
+}
+
+function getNextYardPlacementId(rowsAsArrays, headers) {
+  const placementIdIndex = getHeaderIndex(headers, "Placement ID");
+  let maxNumber = 0;
+
+  if (placementIdIndex < 0) {
+    return "YARD-000001";
+  }
+
+  rowsAsArrays.slice(1).forEach((rowArray) => {
+    const value = String(rowArray[placementIdIndex] ?? "").trim();
+    const match = value.match(/^YARD-(\d{1,})$/i);
+
+    if (match) {
+      const numberValue = Number(match[1]);
+
+      if (Number.isInteger(numberValue) && numberValue > maxNumber) {
+        maxNumber = numberValue;
+      }
+    }
+  });
+
+  return `YARD-${String(maxNumber + 1).padStart(6, "0")}`;
+}
+
+function getYardPlacementIdNumber(placementId) {
+  const match = String(placementId || "").trim().match(/^YARD-(\d{1,})$/i);
+
+  if (!match) {
+    return 0;
+  }
+
+  const numberValue = Number(match[1]);
+  return Number.isInteger(numberValue) ? numberValue : 0;
+}
+
+function buildYardPlacementIdFromNumber(numberValue) {
+  return `YARD-${String(numberValue).padStart(6, "0")}`;
+}
+
+function buildYardRowFromRequest(headers, incomingRow, options = {}) {
+  const rowData = incomingRow && typeof incomingRow === "object" ? { ...incomingRow } : {};
+  const now = new Date().toISOString();
+  const reserved = options.reserved || {
+    unitNumbers: new Set(),
+  };
+  const existingRow = options.existingRow || {};
+  const unitNumber = String(getIncomingValueByHeader(rowData, "Unit Number") ?? "").trim().toUpperCase();
+
+  if (!unitNumber) {
+    throw new Error("Unit Number is required.");
+  }
+
+  if (reserved.unitNumbers.has(unitNumber.toLowerCase())) {
+    throw new Error(`Unit Number ${unitNumber} already exists in Yard Inventory.`);
+  }
+
+  const area = normalizeYardChoice(
+    getIncomingValueByHeader(rowData, "Area"),
+    YARD_AREA_VALUES,
+    "Area",
+    "Yard"
+  );
+  const availabilityStatus = normalizeYardChoice(
+    getIncomingValueByHeader(rowData, "Availability Status"),
+    YARD_AVAILABILITY_VALUES,
+    "Availability Status",
+    "Available"
+  );
+  const conditionStatus = normalizeYardChoice(
+    getIncomingValueByHeader(rowData, "Condition Status"),
+    YARD_CONDITION_VALUES,
+    "Condition Status",
+    "Ready"
+  );
+
+  if (!area) {
+    throw new Error("Area is required.");
+  }
+
+  if (!availabilityStatus) {
+    throw new Error("Availability Status is required.");
+  }
+
+  if (!conditionStatus) {
+    throw new Error("Condition Status is required.");
+  }
+
+  const cleanRow = {
+    "Placement ID": options.placementId || existingRow["Placement ID"] || "",
+    "Unit Number": unitNumber,
+    "Serial Number": String(getIncomingValueByHeader(rowData, "Serial Number") ?? "").trim(),
+    "Equipment Type": String(getIncomingValueByHeader(rowData, "Equipment Type") ?? "").trim(),
+    Make: String(getIncomingValueByHeader(rowData, "Make") ?? "").trim(),
+    Model: String(getIncomingValueByHeader(rowData, "Model") ?? "").trim(),
+    Year: normalizeYardYear(getIncomingValueByHeader(rowData, "Year")),
+    Area: area,
+    Zone: normalizeYardChoice(
+      getIncomingValueByHeader(rowData, "Zone"),
+      YARD_ZONE_VALUES,
+      "Zone",
+      "Unknown"
+    ),
+    Row: String(getIncomingValueByHeader(rowData, "Row") ?? "").trim().toUpperCase(),
+    Slot: String(getIncomingValueByHeader(rowData, "Slot") ?? "").trim().toUpperCase(),
+    "Display Position": normalizeYardChoice(
+      getIncomingValueByHeader(rowData, "Display Position"),
+      YARD_DISPLAY_VALUES,
+      "Display Position",
+      "Not Displayed"
+    ),
+    "Availability Status": availabilityStatus,
+    "Condition Status": conditionStatus,
+    "Customer Hold": normalizeYardChoice(
+      getIncomingValueByHeader(rowData, "Customer Hold"),
+      YARD_CUSTOMER_HOLD_VALUES,
+      "Customer Hold",
+      "No"
+    ),
+    "Last Moved Date": String(getIncomingValueByHeader(rowData, "Last Moved Date") ?? "").trim(),
+    "Moved By": String(getIncomingValueByHeader(rowData, "Moved By") ?? "").trim(),
+    Notes: String(getIncomingValueByHeader(rowData, "Notes") ?? "").trim(),
+    "Date Created": options.dateCreated || existingRow["Date Created"] || now,
+    "Last Updated": now,
+  };
+
+  return headers.map((header) => {
+    if (!header || String(header).trim() === "") {
+      return "";
+    }
+
+    return Object.prototype.hasOwnProperty.call(cleanRow, header)
+      ? cleanRow[header]
+      : String(getIncomingValueByHeader(rowData, header) ?? "").trim();
+  });
+}
+
+function appendYardInventoryRow(incomingRow) {
+  const {
+    filePath,
+    workbook,
+    worksheet,
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  } = readYardInventoryWorkbook();
+
+  const reserved = getYardReservedValues(headers, rowsAsArrays);
+  const placementId = getNextYardPlacementId(rowsAsArrays, headers);
+  const values = buildYardRowFromRequest(headers, incomingRow, {
+    reserved,
+    placementId,
+  });
+  const backupPath = createExcelBackup(filePath);
+  const nextExcelRowNumber = rowsAsArrays.length + 1;
+
+  XLSX.utils.sheet_add_aoa(worksheet, [values], {
+    origin: -1,
+  });
+
+  workbook.Sheets[sheetName] = worksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+  const addedRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    addedRow[header] = values[columnIndex] ?? "";
+  });
+
+  return {
+    sheetName,
+    excelRowNumber: nextExcelRowNumber,
+    columns: usableHeaders,
+    row: addedRow,
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+function appendBulkYardInventoryRows(incomingRows) {
+  if (!Array.isArray(incomingRows) || !incomingRows.length) {
+    throw new Error("Paste at least one yard inventory row before uploading.");
+  }
+
+  const {
+    filePath,
+    workbook,
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  } = readYardInventoryWorkbook();
+
+  const reserved = getYardReservedValues(headers, rowsAsArrays);
+  const startingPlacementIdNumber = getYardPlacementIdNumber(getNextYardPlacementId(rowsAsArrays, headers));
+  let nextPlacementIdNumber = startingPlacementIdNumber;
+  const acceptedRows = [];
+  const skippedRows = [];
+
+  incomingRows.forEach((incomingRow, index) => {
+    try {
+      const placementId = buildYardPlacementIdFromNumber(nextPlacementIdNumber);
+      const values = buildYardRowFromRequest(headers, incomingRow, {
+        reserved,
+        placementId,
+      });
+
+      const unitIndex = getHeaderIndex(headers, "Unit Number");
+      const cleanUnitNumber = unitIndex >= 0 ? String(values[unitIndex] ?? "").trim() : "";
+
+      if (cleanUnitNumber) {
+        reserved.unitNumbers.add(cleanUnitNumber.toLowerCase());
+      }
+
+      acceptedRows.push({
+        sourceRowNumber: index + 1,
+        excelRowNumber: rowsAsArrays.length + acceptedRows.length + 1,
+        values,
+      });
+      nextPlacementIdNumber += 1;
+    } catch (error) {
+      skippedRows.push({
+        sourceRowNumber: index + 1,
+        error: error.message,
+      });
+    }
+  });
+
+  if (!acceptedRows.length) {
+    const details = skippedRows.map((row) => `Row ${row.sourceRowNumber}: ${row.error}`).join("; ");
+    throw new Error(details || "No valid yard inventory rows were found to upload.");
+  }
+
+  const backupPath = createExcelBackup(filePath);
+  const rebuiltRows = [
+    ...rowsAsArrays,
+    ...acceptedRows.map((row) => row.values),
+  ];
+  const newWorksheet = XLSX.utils.aoa_to_sheet(rebuiltRows);
+  workbook.Sheets[sheetName] = newWorksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+
+  return {
+    sheetName,
+    uploadedRowCount: acceptedRows.length,
+    skippedRowCount: skippedRows.length,
+    skippedRows,
+    uploadedExcelRowNumbers: acceptedRows.map((row) => row.excelRowNumber),
+    columns: usableHeaders,
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+function updateYardInventoryRow(excelRowNumber, incomingRow) {
+  const safeRowNumber = Number(excelRowNumber);
+
+  if (!Number.isInteger(safeRowNumber) || safeRowNumber < 2) {
+    throw new Error("Select one valid yard inventory row to update.");
+  }
+
+  const {
+    filePath,
+    workbook,
+    sheetName,
+    headers,
+    usableHeaders,
+    rowsAsArrays,
+  } = readYardInventoryWorkbook();
+
+  const rowIndex = safeRowNumber - 1;
+  const existingRowArray = rowsAsArrays[rowIndex];
+
+  if (!existingRowArray) {
+    throw new Error(`Excel row ${safeRowNumber} was not found.`);
+  }
+
+  const existingRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    existingRow[header] = existingRowArray[columnIndex] ?? "";
+  });
+
+  const reserved = getYardReservedValues(headers, rowsAsArrays, safeRowNumber);
+  const values = buildYardRowFromRequest(headers, incomingRow, {
+    reserved,
+    existingRow,
+    placementId: existingRow["Placement ID"] || getNextYardPlacementId(rowsAsArrays, headers),
+    dateCreated: existingRow["Date Created"] || new Date().toISOString(),
+  });
+
+  const backupPath = createExcelBackup(filePath);
+  const rebuiltRows = rowsAsArrays.map((rowArray, index) => {
+    if (index === safeRowNumber - 1) {
+      return values;
+    }
+
+    return rowArray;
+  });
+
+  const newWorksheet = XLSX.utils.aoa_to_sheet(rebuiltRows);
+  workbook.Sheets[sheetName] = newWorksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+  const updatedRow = {};
+
+  usableHeaders.forEach((header) => {
+    const columnIndex = headers.indexOf(header);
+    updatedRow[header] = values[columnIndex] ?? "";
+  });
+
+  return {
+    sheetName,
+    excelRowNumber: safeRowNumber,
+    columns: usableHeaders,
+    row: updatedRow,
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+function deleteYardInventoryRows(excelRowNumbers) {
+  if (!Array.isArray(excelRowNumbers) || !excelRowNumbers.length) {
+    throw new Error("Select at least one saved yard inventory row to delete.");
+  }
+
+  const safeRowNumbers = Array.from(
+    new Set(
+      excelRowNumbers
+        .map((rowNumber) => Number(rowNumber))
+        .filter((rowNumber) => Number.isInteger(rowNumber) && rowNumber >= 2)
+    )
+  ).sort((a, b) => a - b);
+
+  if (!safeRowNumbers.length) {
+    throw new Error("Select at least one valid saved yard inventory row to delete.");
+  }
+
+  const {
+    filePath,
+    workbook,
+    sheetName,
+    headers,
+    rowsAsArrays,
+  } = readYardInventoryWorkbook();
+
+  const rowNumberSet = new Set(safeRowNumbers);
+  const backupPath = createExcelBackup(filePath);
+  const keptRows = [headers];
+  const deletedRows = [];
+
+  rowsAsArrays.slice(1).forEach((rowArray, index) => {
+    const excelRowNumber = index + 2;
+
+    if (rowNumberSet.has(excelRowNumber)) {
+      deletedRows.push({
+        excelRowNumber,
+        values: rowArray,
+      });
+      return;
+    }
+
+    keptRows.push(rowArray);
+  });
+
+  if (!deletedRows.length) {
+    throw new Error("No matching yard inventory rows were found to delete.");
+  }
+
+  const newWorksheet = XLSX.utils.aoa_to_sheet(keptRows);
+  workbook.Sheets[sheetName] = newWorksheet;
+
+  const saveResult = writeWorkbookToDisk(workbook, filePath);
+
+  return {
+    sheetName,
+    deletedRowCount: deletedRows.length,
+    remainingDataRowCount: keptRows.length - 1,
+    deletedExcelRowNumbers: deletedRows.map((row) => row.excelRowNumber),
+    savedTo: saveResult.savedTo,
+    savedToRelative: saveResult.savedToRelative,
+    bytes: saveResult.bytes,
+    modifiedAt: saveResult.modifiedAt,
+    backupFile: path.relative(__dirname, backupPath),
+  };
+}
+
+app.get("/api/yard/columns", (req, res) => {
+  try {
+    const { filePath, sheetName, usableHeaders } = readYardInventoryWorkbook();
+
+    res.json({
+      ok: true,
+      sheetName,
+      columns: usableHeaders,
+      filePath,
+      relativeFilePath: path.relative(__dirname, filePath),
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/yard/import-template", (req, res) => {
+  try {
+    const importHeaders = [
+      "Unit Number",
+      "Serial Number",
+      "Equipment Type",
+      "Make",
+      "Model",
+      "Year",
+      "Area",
+      "Zone",
+      "Row",
+      "Slot",
+      "Display Position",
+      "Availability Status",
+      "Condition Status",
+      "Customer Hold",
+      "Last Moved Date",
+      "Moved By",
+      "Notes",
+    ];
+
+    const sampleRow = [
+      "AR 5000",
+      "SN123456",
+      "Forklift",
+      "Toyota",
+      "8FGCU25",
+      "2019",
+      "Yard",
+      "North Yard",
+      "R01",
+      "S04",
+      "Front Row",
+      "Available",
+      "Ready",
+      "No",
+      "",
+      "Ethan",
+      "Sample yard inventory row",
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      importHeaders,
+      sampleRow,
+    ]);
+
+    worksheet["!cols"] = importHeaders.map((header) => {
+      return {
+        wch: Math.max(String(header).length + 4, 16),
+      };
+    });
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Yard Import");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="yard-inventory-import-template.xlsx"'
+    );
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message || "Failed to generate yard import template.",
+    });
+  }
+});
+
+app.get("/api/yard/rows", (req, res) => {
+  try {
+    const { filePath, sheetName } = readYardInventoryWorkbook();
+    const { rows, columns } = getYardRowsAsObjects();
+
+    res.json({
+      ok: true,
+      sheetName,
+      count: rows.length,
+      columns,
+      rows,
+      filePath,
+      relativeFilePath: path.relative(__dirname, filePath),
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/yard/add-row", (req, res) => {
+  try {
+    const incomingRow = req.body?.row || req.body || {};
+    const result = appendYardInventoryRow(incomingRow);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "add-yard-row",
+      message: "Yard inventory row added successfully and saved to the yard inventory Excel file.",
+      addedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/yard/bulk-add", (req, res) => {
+  try {
+    const incomingRows = Array.isArray(req.body?.rows) ? req.body.rows : [];
+    const result = appendBulkYardInventoryRows(incomingRows);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "bulk-add-yard-rows",
+      message: "Bulk yard inventory rows added successfully and saved to the yard inventory Excel file.",
+      addedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/yard/update-row", (req, res) => {
+  try {
+    const excelRowNumber = req.body?.excelRowNumber;
+    const incomingRow = req.body?.row || {};
+    const result = updateYardInventoryRow(excelRowNumber, incomingRow);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "update-yard-row",
+      message: "Selected yard inventory row updated successfully and saved to the yard inventory Excel file.",
+      updatedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/yard/delete-rows", (req, res) => {
+  try {
+    const excelRowNumbers = Array.isArray(req.body?.excelRowNumbers)
+      ? req.body.excelRowNumbers
+      : [];
+    const result = deleteYardInventoryRows(excelRowNumbers);
+    const status = buildStatusSummary();
+
+    res.json({
+      ok: true,
+      action: "delete-yard-rows",
+      message: "Selected yard inventory rows deleted successfully. Header row was kept.",
+      deletedAt: new Date().toISOString(),
+      result,
+      status,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
 app.post("/api/sync-excel", async (req, res) => {
   try {
     const status = buildStatusSummary();
@@ -3049,4 +3901,5 @@ app.listen(PORT, () => {
   console.log(`Location:  ${excelDataFiles.location}`);
   console.log(`Equipment: ${excelDataFiles.equipment}`);
   console.log(`Parts:     ${partsInventoryFile}`);
+  console.log(`Yard:      ${yardInventoryFile}`);
 });
