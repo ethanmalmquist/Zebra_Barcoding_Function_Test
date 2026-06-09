@@ -250,6 +250,217 @@
       margin-bottom: 6px;
     }
 
+
+    .showroom-map-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .showroom-map-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .showroom-map-header h2 {
+      color: var(--brand-blue-dark);
+      font-size: 18px;
+      margin: 0 0 6px;
+    }
+
+    .showroom-map-header p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .showroom-map-legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .showroom-map-stage {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #dffafa;
+      padding: 14px;
+      overflow-x: auto;
+    }
+
+    .showroom-orientation-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      color: var(--text-soft);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .showroom-map-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(145px, 1fr));
+      gap: 12px;
+      min-width: 540px;
+      align-items: stretch;
+    }
+
+    .showroom-section {
+      border: 1px solid #9ee5e4;
+      background: #d6fbfb;
+      border-radius: 4px;
+      padding: 8px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+    }
+
+    .showroom-section-title {
+      justify-self: center;
+      background: #6fe4dd;
+      border: 1px solid #0f766e;
+      color: #042f2e;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 4px 10px;
+    }
+
+    .showroom-bay-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      align-items: stretch;
+      border-left: 1px solid #9ca3af;
+      border-top: 1px solid #9ca3af;
+      background: white;
+    }
+
+    .showroom-bay-column {
+      display: grid;
+      grid-template-rows: repeat(19, 32px);
+      min-width: 54px;
+    }
+
+    .showroom-bay-cell {
+      min-height: 32px;
+      border-right: 1px solid #9ca3af;
+      border-bottom: 1px solid #9ca3af;
+      background: #fff;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.1;
+      padding: 2px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .showroom-bay-cell.empty {
+      color: #475569;
+    }
+
+    .showroom-bay-cell.open-space {
+      background: #d6fbfb;
+      border-right: none;
+      border-bottom: none;
+      cursor: default;
+    }
+
+    .showroom-bay-cell.occupied {
+      background: var(--brand-blue-soft);
+      color: var(--brand-blue-dark);
+      font-weight: 800;
+    }
+
+    .showroom-bay-cell.rental-ready {
+      background: var(--brand-green-soft);
+      color: #237804;
+      font-weight: 800;
+    }
+
+    .showroom-bay-cell.needs-attention {
+      background: var(--warning-soft);
+      color: #ad6800;
+      font-weight: 800;
+    }
+
+    .showroom-bay-cell.sold-hold {
+      background: var(--danger-soft);
+      color: #a8071a;
+      font-weight: 800;
+    }
+
+    .showroom-bay-cell:hover:not(.open-space) {
+      outline: 2px solid var(--brand-blue);
+      outline-offset: -2px;
+      z-index: 1;
+    }
+
+    .showroom-column-labels {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .showroom-column-label {
+      height: 34px;
+      border: 1px solid #94a3b8;
+      border-radius: 999px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .showroom-map-summary {
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 12px;
+    }
+
+    .showroom-detail-list {
+      display: grid;
+      gap: 10px;
+      text-align: left;
+      margin: 14px 0;
+    }
+
+    .showroom-detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 8px;
+    }
+
+    .showroom-detail-row span {
+      color: var(--text-muted);
+    }
+
+    .showroom-detail-row strong {
+      color: var(--brand-blue-dark);
+      text-align: right;
+    }
+
     .inventory-placeholder-list {
       display: grid;
       gap: 10px;
@@ -2316,6 +2527,9 @@
                         <option value="East Yard">East Yard</option>
                         <option value="West Yard">West Yard</option>
                         <option value="Showroom Floor">Showroom Floor</option>
+                        <option value="Section 5">Section 5</option>
+                        <option value="Section 6">Section 6</option>
+                        <option value="Section 7">Section 7</option>
                         <option value="Shop Bay">Shop Bay</option>
                         <option value="Wash Bay">Wash Bay</option>
                         <option value="Delivery Lane">Delivery Lane</option>
@@ -2328,12 +2542,12 @@
 
                     <div class="excel-field">
                       <label for="yardRowInput">Row</label>
-                      <input id="yardRowInput" type="text" placeholder="Example: R01" />
+                      <input id="yardRowInput" type="text" placeholder="Example: A" />
                     </div>
 
                     <div class="excel-field">
                       <label for="yardSlotInput">Slot</label>
-                      <input id="yardSlotInput" type="text" placeholder="Example: S04" />
+                      <input id="yardSlotInput" type="text" placeholder="Example: 19" />
                     </div>
 
                     <div class="excel-field">
@@ -2518,6 +2732,30 @@
                   <h2>Needs Attention</h2>
                   <p>Missing placement, blocked, damaged, or requiring review.</p>
                 </article>
+              </section>
+
+              <section class="showroom-map-card">
+                <div class="showroom-map-header">
+                  <div>
+                    <h2>Showroom Location Map</h2>
+                    <p>View Section 5, Section 6, and Section 7 bays. Bay 19 is furthest from the entrance and Bay 1 is closest.</p>
+                  </div>
+                  <div class="showroom-map-legend">
+                    <span class="pill">White = Empty</span>
+                    <span class="pill connected">Green = Rental Ready</span>
+                    <span class="pill checking">Orange = Needs Attention</span>
+                    <span class="pill disconnected">Red = Hold / Sold</span>
+                  </div>
+                </div>
+
+                <div class="showroom-map-stage">
+                  <div class="showroom-orientation-note">
+                    <span>Furthest from entrance</span>
+                    <span>Entrance / customer side is bottom-left</span>
+                  </div>
+                  <div id="showroomMapGrid" class="showroom-map-grid"></div>
+                  <div id="showroomMapSummary" class="showroom-map-summary">Loading showroom map...</div>
+                </div>
               </section>
 
               <section class="excel-data-card">
@@ -2762,6 +3000,17 @@
   </div>
 
 
+
+  <div id="showroomBayModal" class="modal-backdrop" aria-hidden="true">
+    <div class="status-modal" role="dialog" aria-modal="true" aria-labelledby="showroomBayModalTitle">
+      <button class="modal-close-button" type="button" onclick="closeShowroomBayModal()" aria-label="Close showroom bay detail modal">×</button>
+      <div id="showroomBayModalIcon" class="modal-icon checking">□</div>
+      <h2 id="showroomBayModalTitle">Showroom Bay</h2>
+      <p id="showroomBayModalDescription">Bay details will appear here.</p>
+      <div id="showroomBayModalDetails" class="showroom-detail-list"></div>
+      <div id="showroomBayModalActions" class="modal-actions"></div>
+    </div>
+  </div>
 
   <div id="yardEditModal" class="modal-backdrop" aria-hidden="true">
     <div class="edit-row-modal" role="dialog" aria-modal="true" aria-labelledby="yardEditTitle">
@@ -5587,6 +5836,9 @@
       "East Yard",
       "West Yard",
       "Showroom Floor",
+      "Section 5",
+      "Section 6",
+      "Section 7",
       "Shop Bay",
       "Wash Bay",
       "Delivery Lane",
@@ -5626,6 +5878,52 @@
       "Unknown",
     ];
     const YARD_CUSTOMER_HOLD_VALUES = ["No", "Yes"];
+    const SHOWROOM_SECTION_LAYOUT = [
+      { zone: "Section 5", columns: ["A", "B"] },
+      { zone: "Section 6", columns: ["C", "D"] },
+      { zone: "Section 7", columns: ["E", "F"] },
+    ];
+    const SHOWROOM_SLOTS_DESC = [19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+
+    function normalizeShowroomZone(value) {
+      const text = String(value ?? "").trim().toLowerCase();
+
+      if (["section 5", "5", "showroom section 5"].includes(text)) return "Section 5";
+      if (["section 6", "6", "showroom section 6"].includes(text)) return "Section 6";
+      if (["section 7", "7", "showroom section 7"].includes(text)) return "Section 7";
+
+      return String(value ?? "").trim();
+    }
+
+    function normalizeShowroomColumn(value) {
+      return String(value ?? "").trim().toUpperCase();
+    }
+
+    function normalizeShowroomSlot(value) {
+      const match = String(value ?? "").trim().match(/\d+/);
+      return match ? String(Number(match[0])) : "";
+    }
+
+    function getShowroomBayKey(zone, column, slot) {
+      return `${normalizeShowroomZone(zone)}|${normalizeShowroomColumn(column)}|${normalizeShowroomSlot(slot)}`;
+    }
+
+    function isValidShowroomBay(zone, column, slot) {
+      const normalizedZone = normalizeShowroomZone(zone);
+      const normalizedColumn = normalizeShowroomColumn(column);
+      const normalizedSlot = Number(normalizeShowroomSlot(slot));
+      const layout = SHOWROOM_SECTION_LAYOUT.find((section) => section.zone === normalizedZone);
+
+      if (!layout || !layout.columns.includes(normalizedColumn) || !Number.isInteger(normalizedSlot)) {
+        return false;
+      }
+
+      if (normalizedColumn === "A") {
+        return normalizedSlot >= 7 && normalizedSlot <= 19;
+      }
+
+      return normalizedSlot >= 1 && normalizedSlot <= 19;
+    }
 
     const YARD_FORM_FIELDS = [
       { id: "yardUnitNumberInput", column: "Unit Number" },
@@ -5754,6 +6052,11 @@
 
     async function addYardInventoryRow() {
       const row = getYardFormRow();
+
+      if (String(row.Area || "").trim() === "Showroom" && !isValidShowroomBay(row.Zone, row.Row, row.Slot)) {
+        setYardInventoryMessage("Showroom locations must use Section 5 A7-A19, Section 5 B1-B19, Section 6 C/D 1-19, or Section 7 E/F 1-19.", "error");
+        return;
+      }
 
       setYardInventoryMessage("Adding equipment placement...", "");
 
@@ -5947,6 +6250,7 @@
 
       const filteredRows = getFilteredYardInventoryRows();
       updateYardInventorySummary(filteredRows);
+      renderShowroomMap();
 
       if (!yardInventoryRows.length) {
         selectedYardInventoryRowNumbers = new Set();
@@ -6040,6 +6344,210 @@
         .join("");
 
       updateYardInventoryActionButtons();
+    }
+
+    function isYardRowShowroom(row) {
+      return String(row?.Area || "").trim().toLowerCase() === "showroom";
+    }
+
+    function getShowroomBayStatusClass(row) {
+      const availability = String(row?.["Availability Status"] || "").trim();
+      const condition = String(row?.["Condition Status"] || "").trim();
+      const hold = String(row?.["Customer Hold"] || "").trim();
+
+      if (["Sold", "On Hold", "Reserved"].includes(availability) || hold === "Yes") {
+        return "sold-hold";
+      }
+
+      if (availability === "Rental Ready") {
+        return "rental-ready";
+      }
+
+      if (condition && condition !== "Ready" && condition !== "Unknown") {
+        return "needs-attention";
+      }
+
+      return "occupied";
+    }
+
+    function getShowroomBayMap() {
+      const bayMap = new Map();
+
+      yardInventoryRows.forEach((row) => {
+        if (!isYardRowShowroom(row)) {
+          return;
+        }
+
+        const zone = normalizeShowroomZone(row.Zone);
+        const column = normalizeShowroomColumn(row.Row);
+        const slot = normalizeShowroomSlot(row.Slot);
+
+        if (!isValidShowroomBay(zone, column, slot)) {
+          return;
+        }
+
+        const key = getShowroomBayKey(zone, column, slot);
+        const currentRows = bayMap.get(key) || [];
+        currentRows.push(row);
+        bayMap.set(key, currentRows);
+      });
+
+      return bayMap;
+    }
+
+    function renderShowroomMap() {
+      const grid = document.getElementById("showroomMapGrid");
+      const summary = document.getElementById("showroomMapSummary");
+
+      if (!grid) {
+        return;
+      }
+
+      const bayMap = getShowroomBayMap();
+      let occupiedBayCount = 0;
+
+      grid.innerHTML = SHOWROOM_SECTION_LAYOUT.map((section) => {
+        const columnsHtml = section.columns.map((column) => {
+          const cellsHtml = SHOWROOM_SLOTS_DESC.map((slot) => {
+            if (column === "A" && slot < 7) {
+              return `<div class="showroom-bay-cell open-space" title="Column A starts at bay 7 because this entrance-side space is reserved for larger units."></div>`;
+            }
+
+            const key = getShowroomBayKey(section.zone, column, slot);
+            const rowsInBay = bayMap.get(key) || [];
+            const firstRow = rowsInBay[0];
+            const unitNumber = firstRow ? String(firstRow["Unit Number"] || "").trim() : "";
+            const cellClass = firstRow ? getShowroomBayStatusClass(firstRow) : "empty";
+            const duplicateLabel = rowsInBay.length > 1 ? ` +${rowsInBay.length - 1}` : "";
+            const cellText = unitNumber ? `${unitNumber}${duplicateLabel}` : String(slot);
+            const titleText = unitNumber
+              ? `${section.zone} / ${column}${slot}: ${unitNumber}`
+              : `${section.zone} / ${column}${slot}: Empty`;
+
+            if (unitNumber) {
+              occupiedBayCount += 1;
+            }
+
+            return `<button class="showroom-bay-cell ${cellClass}" type="button" title="${escapeHtml(titleText)}" onclick="openShowroomBayModal('${section.zone}', '${column}', '${slot}')">${escapeHtml(cellText)}</button>`;
+          }).join("");
+
+          return `<div class="showroom-bay-column">${cellsHtml}</div>`;
+        }).join("");
+
+        const labelsHtml = section.columns.map((column) => {
+          return `<div class="showroom-column-label">${column}</div>`;
+        }).join("");
+
+        return `
+          <article class="showroom-section">
+            <div class="showroom-section-title">${section.zone}</div>
+            <div class="showroom-bay-columns">${columnsHtml}</div>
+            <div class="showroom-column-labels">${labelsHtml}</div>
+          </article>
+        `;
+      }).join("");
+
+      if (summary) {
+        const showroomRows = yardInventoryRows.filter(isYardRowShowroom).length;
+        summary.textContent = `${occupiedBayCount} occupied showroom bay(s). ${showroomRows} showroom unit row(s) loaded. Column A starts at bay 7; B-F support bays 1-19.`;
+      }
+    }
+
+    function closeShowroomBayModal() {
+      const modal = document.getElementById("showroomBayModal");
+
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function openShowroomBayModal(zone, column, slot) {
+      const modal = document.getElementById("showroomBayModal");
+      const icon = document.getElementById("showroomBayModalIcon");
+      const title = document.getElementById("showroomBayModalTitle");
+      const description = document.getElementById("showroomBayModalDescription");
+      const details = document.getElementById("showroomBayModalDetails");
+      const actions = document.getElementById("showroomBayModalActions");
+
+      if (!modal || !title || !description || !details || !actions) {
+        return;
+      }
+
+      const key = getShowroomBayKey(zone, column, slot);
+      const rowsInBay = getShowroomBayMap().get(key) || [];
+      const row = rowsInBay[0] || null;
+      const distanceText = Number(slot) === 19
+        ? "Furthest from entrance"
+        : Number(slot) === 1
+          ? "Closest to entrance"
+          : "Mid-showroom";
+
+      if (icon) {
+        icon.className = "modal-icon";
+        icon.classList.add(row ? "connected" : "checking");
+        icon.textContent = row ? "✓" : "□";
+      }
+
+      title.textContent = `${zone} / ${column}${slot}`;
+      description.textContent = row
+        ? `Occupied by ${row["Unit Number"] || "selected unit"}.`
+        : "This showroom bay is currently empty.";
+
+      details.innerHTML = row
+        ? `
+          <div class="showroom-detail-row"><span>Unit Number</span><strong>${escapeHtml(row["Unit Number"] || "")}</strong></div>
+          <div class="showroom-detail-row"><span>Equipment</span><strong>${escapeHtml([row.Make, row.Model].filter(Boolean).join(" ") || row["Equipment Type"] || "")}</strong></div>
+          <div class="showroom-detail-row"><span>Availability</span><strong>${escapeHtml(row["Availability Status"] || "")}</strong></div>
+          <div class="showroom-detail-row"><span>Condition</span><strong>${escapeHtml(row["Condition Status"] || "")}</strong></div>
+          <div class="showroom-detail-row"><span>Distance</span><strong>${distanceText}</strong></div>
+          <div class="showroom-detail-row"><span>Notes</span><strong>${escapeHtml(row.Notes || "")}</strong></div>
+        `
+        : `
+          <div class="showroom-detail-row"><span>Location</span><strong>${zone} / ${column}${slot}</strong></div>
+          <div class="showroom-detail-row"><span>Status</span><strong>Empty</strong></div>
+          <div class="showroom-detail-row"><span>Distance</span><strong>${distanceText}</strong></div>
+        `;
+
+      actions.innerHTML = "";
+
+      if (row) {
+        const rowNumber = getYardRowExcelNumber(row, yardInventoryRows.indexOf(row));
+        const editButton = document.createElement("button");
+        editButton.className = "orange";
+        editButton.textContent = "Edit Placement";
+        editButton.onclick = () => {
+          selectedYardInventoryRowNumbers = new Set([rowNumber]);
+          closeShowroomBayModal();
+          renderYardInventoryTable();
+          openEditSelectedYardModal();
+        };
+        actions.appendChild(editButton);
+      } else {
+        const addButton = document.createElement("button");
+        addButton.className = "primary";
+        addButton.textContent = "Add Unit Here";
+        addButton.onclick = () => {
+          document.getElementById("yardAreaInput").value = "Showroom";
+          document.getElementById("yardZoneInput").value = zone;
+          document.getElementById("yardRowInput").value = column;
+          document.getElementById("yardSlotInput").value = slot;
+          closeShowroomBayModal();
+          setYardInventoryMessage(`Location filled for ${zone} / ${column}${slot}. Enter the unit details, then add the placement.`, "success");
+        };
+        actions.appendChild(addButton);
+      }
+
+      const closeButton = document.createElement("button");
+      closeButton.className = "secondary";
+      closeButton.textContent = "Close";
+      closeButton.onclick = closeShowroomBayModal;
+      actions.appendChild(closeButton);
+
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
     }
 
     function closeYardEditModal() {
@@ -6164,6 +6672,11 @@
       inputs.forEach((input) => {
         row[input.dataset.yardColumn] = input.value;
       });
+
+      if (String(row.Area || "").trim() === "Showroom" && !isValidShowroomBay(row.Zone, row.Row, row.Slot)) {
+        setYardEditMessage("Showroom locations must use Section 5 A7-A19, Section 5 B1-B19, Section 6 C/D 1-19, or Section 7 E/F 1-19.", "error");
+        return;
+      }
 
       setYardEditMessage("Saving yard changes...", "");
 
@@ -6391,6 +6904,10 @@
 
       if (customerHold && !hasAllowedValue(customerHold, YARD_CUSTOMER_HOLD_VALUES)) {
         issues.push("Customer Hold must be Yes or No");
+      }
+
+      if (area.toLowerCase() === "showroom" && !isValidShowroomBay(zone, getRowValueByColumn(row, "Row"), getRowValueByColumn(row, "Slot"))) {
+        issues.push("Showroom location must be Section 5 A7-A19, Section 5 B1-B19, Section 6 C/D 1-19, or Section 7 E/F 1-19");
       }
 
       return issues;
