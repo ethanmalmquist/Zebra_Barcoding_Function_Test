@@ -2461,6 +2461,131 @@
 
           <div class="workspace">
             <div class="main-stack">
+              <section class="inventory-overview-grid">
+                <article class="inventory-card">
+                  <div id="yardTotalCount" class="inventory-stat">0</div>
+                  <h2>Total Units</h2>
+                  <p>All saved equipment placement rows.</p>
+                </article>
+
+                <article class="inventory-card">
+                  <div id="yardInYardCount" class="inventory-stat">0</div>
+                  <h2>In Yard</h2>
+                  <p>Units placed in any yard area.</p>
+                </article>
+
+                <article class="inventory-card">
+                  <div id="yardShowroomCount" class="inventory-stat">0</div>
+                  <h2>In Showroom</h2>
+                  <p>Units currently on showroom placement.</p>
+                </article>
+
+                <article class="inventory-card">
+                  <div id="yardRentalReadyCount" class="inventory-stat">0</div>
+                  <h2>Rental Ready</h2>
+                  <p>Units staged as rental ready.</p>
+                </article>
+
+                <article class="inventory-card">
+                  <div id="yardNeedsAttentionCount" class="inventory-stat">0</div>
+                  <h2>Needs Attention</h2>
+                  <p>Missing placement, blocked, damaged, or requiring review.</p>
+                </article>
+              </section>
+
+              <section class="showroom-map-card">
+                <div class="showroom-map-header">
+                  <div>
+                    <h2>Showroom Location Map</h2>
+                    <p>View Section 5, Section 6, and Section 7 bays. Bay 19 is furthest from the entrance and Bay 1 is closest.</p>
+                  </div>
+                  <div class="showroom-map-legend">
+                    <span class="pill">White = Empty</span>
+                    <span class="pill connected">Green = Rental Ready</span>
+                    <span class="pill checking">Orange = Needs Attention</span>
+                    <span class="pill disconnected">Red = Hold / Sold</span>
+                  </div>
+                </div>
+
+                <div class="showroom-map-stage">
+                  <div class="showroom-orientation-note">
+                    <span>Entrance / customer side is bottom-left</span>
+                    <span>Furthest from entrance</span>
+                  </div>
+                  <div id="showroomMapGrid" class="showroom-map-grid"></div>
+                  <div id="showroomMapSummary" class="showroom-map-summary">Loading showroom map...</div>
+
+                  <div id="showroomInlineAddCard" class="saved-table-card" style="display: none; margin-top: 16px; background: #fff;">
+                    <div class="saved-table-header">
+                      <div>
+                        <h3>Add Equipment Placement</h3>
+                        <p id="showroomInlineAddDescription">Select an empty showroom bay to add equipment to that location.</p>
+                      </div>
+                      <button class="secondary" type="button" onclick="closeShowroomInlineAddForm()">Cancel</button>
+                    </div>
+
+                    <div id="showroomInlineAddMessage" class="excel-message">Enter the equipment details, then save the placement.</div>
+
+                    <div id="showroomInlineAddFields" class="excel-field-grid" style="margin-top: 12px;">
+                      <div class="excel-empty-state">Click an empty location and choose Add Unit Here to open this form.</div>
+                    </div>
+
+                    <div class="excel-actions-row" style="margin-top: 14px;">
+                      <button class="primary" type="button" onclick="saveShowroomInlineAddedYardRow()">Add Equipment Placement</button>
+                      <button class="secondary" type="button" onclick="closeShowroomInlineAddForm()">Cancel</button>
+                      <button class="secondary" type="button" onclick="clearShowroomInlineAddDetails()">Clear Details</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="excel-data-card">
+                <div class="excel-data-header">
+                  <div>
+                    <h2>Equipment Placement Table</h2>
+                    <p>Review, search, edit, and delete equipment placement rows saved in the local yard inventory Excel table.</p>
+                  </div>
+                  <span class="pill">Writes to data/yard-inventory.xlsx</span>
+                </div>
+
+                <div class="saved-table-card">
+                  <div class="saved-table-header">
+                    <div>
+                      <h3>Saved Yard Inventory Preview</h3>
+                      <p>Select one row to edit, or one or more rows to delete.</p>
+                    </div>
+                    <div class="saved-table-tools">
+                      <button class="secondary" type="button" onclick="downloadYardImportTemplate()">
+                        Download Import Template
+                      </button>
+                      <button class="secondary" type="button" onclick="openBulkYardModal()">
+                        Add Bulk Equipment
+                      </button>
+                      <button id="editSelectedYardButton" class="orange" type="button" onclick="openEditSelectedYardModal()" disabled>
+                        Edit Selected Row
+                      </button>
+                      <button id="deleteSelectedYardButton" class="danger" type="button" onclick="deleteSelectedYardInventoryRows()" disabled>
+                        Delete Selected Rows
+                      </button>
+                      <button class="secondary" type="button" onclick="loadYardInventoryRows()">Refresh Table</button>
+                    </div>
+                  </div>
+
+                  <div id="yardTableSummary" class="saved-table-summary">Loading saved yard inventory...</div>
+
+                  <div class="saved-table-wrap">
+                    <table class="saved-excel-table">
+                      <thead id="yardInventoryTableHead"></thead>
+                      <tbody id="yardInventoryTableBody">
+                        <tr>
+                          <td>Loading saved yard inventory...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
               <section class="control-shell">
                 <div class="control-panel">
                   <div class="control-panel-title">
@@ -2701,109 +2826,6 @@
                   </div>
                 </div>
               </section>
-
-              <section class="inventory-overview-grid">
-                <article class="inventory-card">
-                  <div id="yardTotalCount" class="inventory-stat">0</div>
-                  <h2>Total Units</h2>
-                  <p>All saved equipment placement rows.</p>
-                </article>
-
-                <article class="inventory-card">
-                  <div id="yardInYardCount" class="inventory-stat">0</div>
-                  <h2>In Yard</h2>
-                  <p>Units placed in any yard area.</p>
-                </article>
-
-                <article class="inventory-card">
-                  <div id="yardShowroomCount" class="inventory-stat">0</div>
-                  <h2>In Showroom</h2>
-                  <p>Units currently on showroom placement.</p>
-                </article>
-
-                <article class="inventory-card">
-                  <div id="yardRentalReadyCount" class="inventory-stat">0</div>
-                  <h2>Rental Ready</h2>
-                  <p>Units staged as rental ready.</p>
-                </article>
-
-                <article class="inventory-card">
-                  <div id="yardNeedsAttentionCount" class="inventory-stat">0</div>
-                  <h2>Needs Attention</h2>
-                  <p>Missing placement, blocked, damaged, or requiring review.</p>
-                </article>
-              </section>
-
-              <section class="showroom-map-card">
-                <div class="showroom-map-header">
-                  <div>
-                    <h2>Showroom Location Map</h2>
-                    <p>View Section 5, Section 6, and Section 7 bays. Bay 19 is furthest from the entrance and Bay 1 is closest.</p>
-                  </div>
-                  <div class="showroom-map-legend">
-                    <span class="pill">White = Empty</span>
-                    <span class="pill connected">Green = Rental Ready</span>
-                    <span class="pill checking">Orange = Needs Attention</span>
-                    <span class="pill disconnected">Red = Hold / Sold</span>
-                  </div>
-                </div>
-
-                <div class="showroom-map-stage">
-                  <div class="showroom-orientation-note">
-                    <span>Furthest from entrance</span>
-                    <span>Entrance / customer side is bottom-left</span>
-                  </div>
-                  <div id="showroomMapGrid" class="showroom-map-grid"></div>
-                  <div id="showroomMapSummary" class="showroom-map-summary">Loading showroom map...</div>
-                </div>
-              </section>
-
-              <section class="excel-data-card">
-                <div class="excel-data-header">
-                  <div>
-                    <h2>Equipment Placement Table</h2>
-                    <p>Review, search, edit, and delete equipment placement rows saved in the local yard inventory Excel table.</p>
-                  </div>
-                  <span class="pill">Writes to data/yard-inventory.xlsx</span>
-                </div>
-
-                <div class="saved-table-card">
-                  <div class="saved-table-header">
-                    <div>
-                      <h3>Saved Yard Inventory Preview</h3>
-                      <p>Select one row to edit, or one or more rows to delete.</p>
-                    </div>
-                    <div class="saved-table-tools">
-                      <button class="secondary" type="button" onclick="downloadYardImportTemplate()">
-                        Download Import Template
-                      </button>
-                      <button class="secondary" type="button" onclick="openBulkYardModal()">
-                        Add Bulk Equipment
-                      </button>
-                      <button id="editSelectedYardButton" class="orange" type="button" onclick="openEditSelectedYardModal()" disabled>
-                        Edit Selected Row
-                      </button>
-                      <button id="deleteSelectedYardButton" class="danger" type="button" onclick="deleteSelectedYardInventoryRows()" disabled>
-                        Delete Selected Rows
-                      </button>
-                      <button class="secondary" type="button" onclick="loadYardInventoryRows()">Refresh Table</button>
-                    </div>
-                  </div>
-
-                  <div id="yardTableSummary" class="saved-table-summary">Loading saved yard inventory...</div>
-
-                  <div class="saved-table-wrap">
-                    <table class="saved-excel-table">
-                      <thead id="yardInventoryTableHead"></thead>
-                      <tbody id="yardInventoryTableBody">
-                        <tr>
-                          <td>Loading saved yard inventory...</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </section>
             </div>
 
             <aside class="side-panel">
@@ -3012,6 +3034,29 @@
     </div>
   </div>
 
+  <div id="yardAddModal" class="modal-backdrop" aria-hidden="true">
+    <div class="edit-row-modal" role="dialog" aria-modal="true" aria-labelledby="yardAddTitle">
+      <div class="edit-row-modal-header">
+        <div>
+          <h2 id="yardAddTitle">Add Equipment Placement</h2>
+          <p id="yardAddDescription">Add a new equipment placement row. The selected showroom location is prefilled when launched from the map.</p>
+        </div>
+        <button class="secondary bulk-close-button" type="button" onclick="closeYardAddModal()">×</button>
+      </div>
+
+      <div id="yardAddMessage" class="edit-row-message">Enter the equipment details, then save the placement.</div>
+
+      <div id="yardAddFields" class="excel-field-grid" style="margin-top: 14px;">
+        <div class="excel-empty-state">Open this modal from Add Unit Here to prefill a showroom bay.</div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button class="primary" type="button" onclick="saveAddedYardRowFromModal()">Add Equipment Placement</button>
+        <button class="secondary" type="button" onclick="closeYardAddModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="yardEditModal" class="modal-backdrop" aria-hidden="true">
     <div class="edit-row-modal" role="dialog" aria-modal="true" aria-labelledby="yardEditTitle">
       <div class="bulk-modal-header">
@@ -3181,6 +3226,8 @@
     let yardInventoryColumns = [];
     let selectedYardInventoryRowNumbers = new Set();
     let editingYardInventoryRowNumber = null;
+    let currentYardAddDefaults = {};
+    let currentShowroomInlineAddDefaults = {};
     let parsedBulkYardRows = [];
     let lastPrinterConnected = false;
 
@@ -5996,6 +6043,21 @@
       }
     }
 
+    function setYardAddMessage(message, type = "") {
+      const messageEl = document.getElementById("yardAddMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "edit-row-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
     function setBulkYardMessage(message, type = "") {
       const messageEl = document.getElementById("bulkYardMessage");
 
@@ -6529,13 +6591,11 @@
         const addButton = document.createElement("button");
         addButton.className = "primary";
         addButton.textContent = "Add Unit Here";
-        addButton.onclick = () => {
-          document.getElementById("yardAreaInput").value = "Showroom";
-          document.getElementById("yardZoneInput").value = zone;
-          document.getElementById("yardRowInput").value = column;
-          document.getElementById("yardSlotInput").value = slot;
-          closeShowroomBayModal();
-          setYardInventoryMessage(`Location filled for ${zone} / ${column}${slot}. Enter the unit details, then add the placement.`, "success");
+        addButton.type = "button";
+        addButton.onclick = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openAddYardPlacementModalFromShowroomBay(zone, column, slot);
         };
         actions.appendChild(addButton);
       }
@@ -6636,6 +6696,442 @@
       wrapper.appendChild(input);
 
       return wrapper;
+    }
+
+    function createYardAddInput(column, value, index) {
+      const wrapper = document.createElement("div");
+      wrapper.className = column === "Notes" ? "excel-field field-wide" : "excel-field";
+
+      const label = document.createElement("label");
+      const inputId = `yardAddField_${index}`;
+      label.setAttribute("for", inputId);
+      label.textContent = column;
+
+      let input;
+
+      if (column === "Area") {
+        input = createSelectInput(YARD_AREA_VALUES, value);
+      } else if (column === "Zone") {
+        input = createSelectInput(YARD_ZONE_VALUES, value);
+      } else if (column === "Display Position") {
+        input = createSelectInput(YARD_DISPLAY_VALUES, value);
+      } else if (column === "Availability Status") {
+        input = createSelectInput(YARD_AVAILABILITY_VALUES, value);
+      } else if (column === "Condition Status") {
+        input = createSelectInput(YARD_CONDITION_VALUES, value);
+      } else if (column === "Customer Hold") {
+        input = createSelectInput(YARD_CUSTOMER_HOLD_VALUES, value);
+      } else {
+        input = document.createElement("input");
+        input.type = column === "Year" ? "number" : "text";
+
+        if (column === "Year") {
+          input.min = "1900";
+          input.max = "2100";
+          input.step = "1";
+        }
+
+        if (column === "Last Moved Date") {
+          input.type = "date";
+        }
+      }
+
+      input.id = inputId;
+      input.dataset.yardAddColumn = column;
+      input.value = value ?? "";
+
+      if (String(currentYardAddDefaults.Area || "") === "Showroom" && ["Area", "Zone", "Row", "Slot"].includes(column)) {
+        input.title = "This location was selected from the showroom map.";
+
+        if (input.tagName === "SELECT") {
+          input.disabled = true;
+        } else {
+          input.readOnly = true;
+        }
+
+        input.classList.add("readonly-generated");
+      }
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+
+      return wrapper;
+    }
+
+    function getDefaultYardAddValues(overrides = {}) {
+      return {
+        "Unit Number": "",
+        "Serial Number": "",
+        "Equipment Type": "",
+        "Make": "",
+        "Model": "",
+        "Year": "",
+        "Area": "Yard",
+        "Zone": "North Yard",
+        "Row": "",
+        "Slot": "",
+        "Display Position": "Front Row",
+        "Availability Status": "Available",
+        "Condition Status": "Ready",
+        "Customer Hold": "No",
+        "Last Moved Date": "",
+        "Moved By": "",
+        "Notes": "",
+        ...overrides,
+      };
+    }
+
+    function openYardAddModal(defaultValues = {}) {
+      const fields = document.getElementById("yardAddFields");
+      const modal = document.getElementById("yardAddModal");
+
+      if (!fields || !modal) {
+        setYardInventoryMessage("Unable to open the add equipment placement modal.", "error");
+        return;
+      }
+
+      currentYardAddDefaults = getDefaultYardAddValues(defaultValues);
+      fields.innerHTML = "";
+
+      const isShowroomAdd = String(currentYardAddDefaults.Area || "") === "Showroom";
+
+      if (isShowroomAdd) {
+        const locationNote = document.createElement("div");
+        locationNote.className = "excel-auto-generated-note";
+        locationNote.innerHTML = `
+          Showroom location selected from map.
+          <span>${escapeHtml(currentYardAddDefaults.Zone)} / ${escapeHtml(currentYardAddDefaults.Row)}${escapeHtml(currentYardAddDefaults.Slot)} is prefilled below and will be saved with the new unit.</span>
+        `;
+        fields.appendChild(locationNote);
+      }
+
+      YARD_EDITABLE_COLUMNS.forEach((column, index) => {
+        fields.appendChild(createYardAddInput(column, currentYardAddDefaults[column], index));
+      });
+
+      const locationLabel = [currentYardAddDefaults.Zone, currentYardAddDefaults.Row && `${currentYardAddDefaults.Row}${currentYardAddDefaults.Slot}`]
+        .filter(Boolean)
+        .join(" / ");
+
+      setYardAddMessage(
+        locationLabel
+          ? `Adding equipment placement for ${locationLabel}. Enter the unit details, then save.`
+          : "Enter the equipment details, then save the placement.",
+        "success"
+      );
+
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+
+      setTimeout(() => {
+        const unitInput = document.querySelector('[data-yard-add-column="Unit Number"]');
+
+        if (unitInput) {
+          unitInput.focus();
+        }
+      }, 0);
+    }
+
+    function setShowroomInlineAddMessage(message, type = "") {
+      const messageEl = document.getElementById("showroomInlineAddMessage");
+
+      if (!messageEl) {
+        return;
+      }
+
+      messageEl.textContent = message || "";
+      messageEl.className = "excel-message";
+
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function createShowroomInlineAddInput(column, value, index) {
+      const wrapper = document.createElement("div");
+      wrapper.className = column === "Notes" ? "excel-field field-wide" : "excel-field";
+
+      const label = document.createElement("label");
+      const inputId = `showroomInlineAddField_${index}`;
+      label.setAttribute("for", inputId);
+      label.textContent = column;
+
+      let input;
+
+      if (column === "Area") {
+        input = createSelectInput(YARD_AREA_VALUES, value);
+      } else if (column === "Zone") {
+        input = createSelectInput(YARD_ZONE_VALUES, value);
+      } else if (column === "Display Position") {
+        input = createSelectInput(YARD_DISPLAY_VALUES, value);
+      } else if (column === "Availability Status") {
+        input = createSelectInput(YARD_AVAILABILITY_VALUES, value);
+      } else if (column === "Condition Status") {
+        input = createSelectInput(YARD_CONDITION_VALUES, value);
+      } else if (column === "Customer Hold") {
+        input = createSelectInput(YARD_CUSTOMER_HOLD_VALUES, value);
+      } else {
+        input = document.createElement("input");
+        input.type = column === "Year" ? "number" : "text";
+
+        if (column === "Year") {
+          input.min = "1900";
+          input.max = "2100";
+          input.step = "1";
+        }
+
+        if (column === "Last Moved Date") {
+          input.type = "date";
+        }
+      }
+
+      input.id = inputId;
+      input.dataset.yardMapAddColumn = column;
+      input.value = value ?? "";
+
+      if (["Area", "Zone", "Row", "Slot"].includes(column)) {
+        input.title = "This location was selected from the showroom map.";
+
+        if (input.tagName === "SELECT") {
+          input.disabled = true;
+        } else {
+          input.readOnly = true;
+        }
+
+        input.classList.add("readonly-generated");
+      }
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+
+      return wrapper;
+    }
+
+    function getShowroomInlineAddValues(zone, column, slot) {
+      return getDefaultYardAddValues({
+        "Area": "Showroom",
+        "Zone": normalizeShowroomZone(zone),
+        "Row": normalizeShowroomColumn(column),
+        "Slot": normalizeShowroomSlot(slot),
+        "Display Position": "Indoor Display",
+        "Availability Status": "Available",
+        "Condition Status": "Ready",
+        "Customer Hold": "No",
+      });
+    }
+
+    function openShowroomInlineAddFormFromBay(zone, column, slot) {
+      const card = document.getElementById("showroomInlineAddCard");
+      const fields = document.getElementById("showroomInlineAddFields");
+      const description = document.getElementById("showroomInlineAddDescription");
+
+      closeShowroomBayModal();
+
+      if (!card || !fields) {
+        setYardInventoryMessage("Unable to open the showroom add equipment placement section.", "error");
+        return;
+      }
+
+      currentShowroomInlineAddDefaults = getShowroomInlineAddValues(zone, column, slot);
+      fields.innerHTML = "";
+
+      const locationNote = document.createElement("div");
+      locationNote.className = "excel-auto-generated-note";
+      locationNote.innerHTML = `
+        Showroom location selected from map.
+        <span>${escapeHtml(currentShowroomInlineAddDefaults.Zone)} / ${escapeHtml(currentShowroomInlineAddDefaults.Row)}${escapeHtml(currentShowroomInlineAddDefaults.Slot)} is prefilled below and will be saved with the new unit.</span>
+      `;
+      fields.appendChild(locationNote);
+
+      YARD_EDITABLE_COLUMNS.forEach((fieldColumn, index) => {
+        fields.appendChild(createShowroomInlineAddInput(fieldColumn, currentShowroomInlineAddDefaults[fieldColumn], index));
+      });
+
+      const locationLabel = `${currentShowroomInlineAddDefaults.Zone} / ${currentShowroomInlineAddDefaults.Row}${currentShowroomInlineAddDefaults.Slot}`;
+
+      if (description) {
+        description.textContent = `Add a new equipment placement directly to ${locationLabel}.`;
+      }
+
+      setShowroomInlineAddMessage(
+        `Adding equipment placement for ${locationLabel}. Enter the unit details, then save.`,
+        "success"
+      );
+
+      card.style.display = "block";
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      setTimeout(() => {
+        const unitInput = document.querySelector('[data-yard-map-add-column="Unit Number"]');
+
+        if (unitInput) {
+          unitInput.focus();
+        }
+      }, 0);
+    }
+
+    function closeShowroomInlineAddForm() {
+      const card = document.getElementById("showroomInlineAddCard");
+      const fields = document.getElementById("showroomInlineAddFields");
+      const description = document.getElementById("showroomInlineAddDescription");
+
+      if (card) {
+        card.style.display = "none";
+      }
+
+      if (fields) {
+        fields.innerHTML = '<div class="excel-empty-state">Click an empty location and choose Add Unit Here to open this form.</div>';
+      }
+
+      if (description) {
+        description.textContent = "Select an empty showroom bay to add equipment to that location.";
+      }
+
+      currentShowroomInlineAddDefaults = {};
+      setShowroomInlineAddMessage("Enter the equipment details, then save the placement.");
+    }
+
+    function clearShowroomInlineAddDetails() {
+      const inputs = document.querySelectorAll("[data-yard-map-add-column]");
+
+      inputs.forEach((input) => {
+        const column = input.dataset.yardMapAddColumn;
+
+        if (["Area", "Zone", "Row", "Slot"].includes(column)) {
+          input.value = currentShowroomInlineAddDefaults[column] || input.value;
+          return;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(currentShowroomInlineAddDefaults, column)) {
+          input.value = getDefaultYardAddValues(currentShowroomInlineAddDefaults)[column] || "";
+        } else {
+          input.value = "";
+        }
+      });
+
+      setShowroomInlineAddMessage("Details cleared. The selected showroom location was kept.", "success");
+    }
+
+    async function saveShowroomInlineAddedYardRow() {
+      const row = {};
+      const inputs = document.querySelectorAll("[data-yard-map-add-column]");
+
+      if (!inputs.length) {
+        setShowroomInlineAddMessage("Click an empty showroom bay and choose Add Unit Here before saving.", "error");
+        return;
+      }
+
+      inputs.forEach((input) => {
+        row[input.dataset.yardMapAddColumn] = input.value;
+      });
+
+      row.Area = currentShowroomInlineAddDefaults.Area || row.Area || "Showroom";
+      row.Zone = currentShowroomInlineAddDefaults.Zone || row.Zone;
+      row.Row = currentShowroomInlineAddDefaults.Row || row.Row;
+      row.Slot = currentShowroomInlineAddDefaults.Slot || row.Slot;
+
+      if (!String(row["Unit Number"] || "").trim()) {
+        setShowroomInlineAddMessage("Unit Number is required before adding equipment to this showroom location.", "error");
+        return;
+      }
+
+      if (!isValidShowroomBay(row.Zone, row.Row, row.Slot)) {
+        setShowroomInlineAddMessage("Showroom locations must use Section 5 A7-A19, Section 5 B1-B19, Section 6 C/D 1-19, or Section 7 E/F 1-19.", "error");
+        return;
+      }
+
+      setShowroomInlineAddMessage("Adding equipment placement to showroom map...", "");
+
+      try {
+        const data = await requestJson("/api/yard/add-row", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ row }),
+        });
+
+        setShowroomInlineAddMessage("Equipment placement added successfully.", "success");
+        setYardInventoryMessage("Equipment placement added successfully from showroom map.", "success");
+        closeShowroomInlineAddForm();
+        await loadYardInventoryRows();
+        setOutput(data);
+      } catch (error) {
+        setShowroomInlineAddMessage(error.message || "Failed to add equipment placement.", "error");
+        setOutput(error.message || "Failed to add equipment placement.");
+      }
+    }
+
+    function openAddYardPlacementModalFromShowroomBay(zone, column, slot) {
+      closeShowroomBayModal();
+
+      setTimeout(() => {
+        openYardAddModalForShowroomBay(zone, column, slot);
+      }, 0);
+    }
+
+    function openYardAddModalForShowroomBay(zone, column, slot) {
+      const normalizedZone = normalizeShowroomZone(zone);
+      const normalizedColumn = normalizeShowroomColumn(column);
+      const normalizedSlot = normalizeShowroomSlot(slot);
+
+      openYardAddModal({
+        "Area": "Showroom",
+        "Zone": normalizedZone,
+        "Row": normalizedColumn,
+        "Slot": normalizedSlot,
+        "Display Position": "Indoor Display",
+        "Availability Status": "Available",
+        "Condition Status": "Ready",
+        "Customer Hold": "No",
+      });
+    }
+
+    function closeYardAddModal() {
+      const modal = document.getElementById("yardAddModal");
+
+      if (!modal) {
+        return;
+      }
+
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      currentYardAddDefaults = {};
+    }
+
+    async function saveAddedYardRowFromModal() {
+      const row = {};
+      const inputs = document.querySelectorAll("[data-yard-add-column]");
+
+      inputs.forEach((input) => {
+        row[input.dataset.yardAddColumn] = input.value;
+      });
+
+      if (String(row.Area || "").trim() === "Showroom" && !isValidShowroomBay(row.Zone, row.Row, row.Slot)) {
+        setYardAddMessage("Showroom locations must use Section 5 A7-A19, Section 5 B1-B19, Section 6 C/D 1-19, or Section 7 E/F 1-19.", "error");
+        return;
+      }
+
+      setYardAddMessage("Adding equipment placement...", "");
+
+      try {
+        const data = await requestJson("/api/yard/add-row", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ row }),
+        });
+
+        setYardAddMessage("Equipment placement added successfully.", "success");
+        setYardInventoryMessage("Equipment placement added successfully.", "success");
+        closeYardAddModal();
+        await loadYardInventoryRows();
+        setOutput(data);
+      } catch (error) {
+        setYardAddMessage(error.message || "Failed to add equipment placement.", "error");
+        setOutput(error.message || "Failed to add equipment placement.");
+      }
     }
 
     function openEditSelectedYardModal() {
